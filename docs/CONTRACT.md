@@ -2,7 +2,7 @@
 
 This is the source of truth that the Apple apps (Swift) and the Windows app (C#)
 both implement. If code and this document disagree, fix one of them; don't let them drift.
-The test vectors in `shared/test-vectors/` are executable versions of sections 2–4 and
+The test vectors in `shared/test-vectors/` are executable versions of sections 2–5 and
 **both** implementations must pass them.
 
 ## 1. Constants
@@ -47,7 +47,22 @@ An empty or null list means "always allowed".
 - Rules are taken from the cached `Rules` at session **start** and stored in
   `Session.rulesSnapshot`.
 
-## 3. Ledger fold (balance)
+## 3. Earn resolution (overrides and bonuses)
+
+Before the fold, each `Session` becomes one earn entry:
+
+- `base = Session.earnedMinutes` (= `qualifyingMinutes × ratio`, computed on the watch).
+- If a `SessionOverride` exists for the session: `earn = override.earnedMinutes`. Its value
+  is final: bonuses are **not** applied on top, and `0` voids the workout.
+- Otherwise: `earn = roundHalfAwayFromZero(base × m)`, where `m` is the **largest**
+  `multiplier` among `Bonus` records with `startsAt ≤ session.startedAt < endsAt`, or `1.0` if none
+  apply. Bonuses never stack.
+- Bonuses are applied when the balance is computed, not on the watch. So a parent can add a
+  bonus after the fact (e.g. "Saturday's walks count double") and every device agrees.
+  The watch shows the bonus live when it knows of one, for display only.
+- The earn entry's `id` = session recordName and `at` = `endedAt`, whether or not it's overridden.
+
+## 4. Ledger fold (balance)
 
 Entries: `{ id: string, kind: "earn" | "spend" | "adjust", minutes: int, at: epoch-ms }`.
 - `earn.minutes ≥ 0` (added). `spend.minutes ≥ 0` (**subtracted**). `adjust.minutes` is signed.
@@ -58,7 +73,7 @@ Entries: `{ id: string, kind: "earn" | "spend" | "adjust", minutes: int, at: epo
   - Otherwise: `balance += delta`.
 - Entries with duplicate `id` are counted once (the first after sorting).
 
-## 4. Play status
+## 5. Play status
 
 Inputs: rules, child `timeZone` (IANA), `now` (instant), `balance`, and spend entries.
 
@@ -77,7 +92,7 @@ Inputs: rules, child `timeZone` (IANA), `now` (instant), `balance`, and spend en
 - `reason` (when `!canPlay`): the first that applies of `"outsidePlayWindow"` (fromWindow ≤ 0),
   `"dailyCapReached"` (fromCap ≤ 0), `"debitLimitReached"` (fromBalance ≤ 0). When `canPlay`, `reason = null`.
 
-## 5. CloudKit layout
+## 6. CloudKit layout
 
 ### Zones
 
@@ -100,7 +115,10 @@ All timestamps are CloudKit `TIMESTAMP` (epoch ms in the REST API). JSON fields 
 |------|-----------|--------|
 | `Child` | `child` | `childId` STRING, `name` STRING, `birthYear` INT64, `timeZone` STRING |
 | `Rules` | `rules` | the rule fields above (`maxBank`, `dailyPlayCap` absent = null; `playWindows` JSON STRING, absent = null), `updatedAt` TIMESTAMP, `updatedBy` STRING (display name) |
-| `Adjustment` | `adjust-<uuid>` | `minutes` INT64 (signed), `note` STRING, `at` TIMESTAMP, `byParent` STRING |
+| `Adjustment` | `adjust-<uuid>` | `minutes` INT64 (signed), `note` STRING (**required**), `at` TIMESTAMP, `byParent` STRING |
+| `SessionOverride` | `override-<session recordName>` | `sessionId` STRING, `earnedMinutes` INT64 (≥ 0; 0 = void), `note` STRING (**required**), `at` TIMESTAMP, `byParent` STRING. Saving again replaces the previous override. Deleting it restores the original. |
+| `Bonus` | `bonus-<uuid>` | `multiplier` DOUBLE (> 1.0, e.g. 1.5, 2.0), `startsAt` TIMESTAMP, `endsAt` TIMESTAMP, `note` STRING (**required**), `at` TIMESTAMP, `byParent` STRING |
+| `RulesChange` | `ruleschange-<uuid>` | `summary` STRING (human readable, e.g. "Ratio 10 → 15; walk cadence 100 → 90"), `note` STRING (**required**), `at` TIMESTAMP, `byParent` STRING. Written alongside every `Rules` save. |
 | `Parent` | `parent-<userRecordName>` | `displayName` STRING, `lookupEmail` STRING? , `lookupPhone` STRING? |
 | `AllowList` | `allow-<deviceId>` | `executables` STRING (JSON array of lowercase exe file names, e.g. `["winword.exe"]`) |
 
@@ -113,8 +131,21 @@ All timestamps are CloudKit `TIMESTAMP` (epoch ms in the REST API). JSON fields 
 | `Spend` | `spend-<deviceId>-<yyyyMMddHHmm UTC of minute start>` | `minutes` INT64, `at` TIMESTAMP (minute start), `deviceId` STRING, `app` STRING |
 | `Device` | `device-<deviceId>` | `kind` STRING (`watch`/`ios`/`windows`), `name` STRING, `lastSeenAt` TIMESTAMP, `detectedApps` STRING? (JSON `[{"exe":"x.exe","name":"Display name"}]`, Windows only) |
 
-Ledger mapping: `Session` → earn (`id` = recordName, `minutes` = earnedMinutes,
-`at` = endedAt); `Spend` → spend (`at` = at); `Adjustment` → adjust (`at` = at).
+Ledger mapping: `Session` → earn (resolved per section 3); `Spend` → spend (`at` = at);
+`Adjustment` → adjust (`at` = at).
+
+### Transparency to the child
+
+The child can read the whole `Family` zone, and **the child's history shows every parent action
+with the parent's name and note**:
+- Adjustment: "+30 min · Mum: tidied room".
+- Workout override: the workout shows its original minutes struck through, the new value, and the
+  note ("Dad: watch worn by sibling"). A voided workout is shown as such, not hidden.
+- Bonus: listed when created ("2× minutes Sat–Sun · Mum: half term"), and each
+  boosted workout is marked "2× bonus".
+- Rules change: "Rules changed by Mum: ratio 10 → 15 · note".
+
+A note is required for all of these, and the apps refuse to save without one.
 
 **Prefs zone** (each parent, private, not shared)
 

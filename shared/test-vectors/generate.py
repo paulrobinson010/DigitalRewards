@@ -135,6 +135,40 @@ def ledger():
     return {"cases": cases}
 
 
+# ---------------------------------------------------------------- earn resolution
+def resolve_earn(session, overrides, bonuses):
+    o = [x for x in overrides if x["sessionId"] == session["id"]]
+    if o:
+        return o[0]["earnedMinutes"]
+    ms_ = [b["multiplier"] for b in bonuses if b["startsAt"] <= session["startedAt"] < b["endsAt"]]
+    m = max(ms_) if ms_ else 1.0
+    return round_half_away(session["earnedMinutes"] * m)
+
+
+def earn():
+    S = lambda id, earned, started: {"id": id, "earnedMinutes": earned, "startedAt": started, "endedAt": started + 1800000}
+    B = lambda mult, a, b: {"multiplier": mult, "startsAt": a, "endsAt": b}
+    O = lambda sid, earned: {"sessionId": sid, "earnedMinutes": earned}
+    cases = []
+    for name, session, overrides, bonuses in [
+        ("no override no bonus", S("session-a", 100, 1000), [], []),
+        ("override replaces", S("session-a", 100, 1000), [O("session-a", 40)], []),
+        ("override zero voids", S("session-a", 100, 1000), [O("session-a", 0)], []),
+        ("override for other session ignored", S("session-a", 100, 1000), [O("session-b", 0)], []),
+        ("bonus doubles", S("session-a", 100, 1000), [], [B(2.0, 0, 2000)]),
+        ("bonus start inclusive", S("session-a", 100, 1000), [], [B(2.0, 1000, 2000)]),
+        ("bonus end exclusive", S("session-a", 100, 1000), [], [B(2.0, 0, 1000)]),
+        ("overlapping bonuses take max", S("session-a", 100, 1000), [], [B(1.5, 0, 5000), B(3.0, 500, 1500), B(2.0, 0, 5000)]),
+        ("bonus rounds half away", S("session-a", 5, 1000), [], [B(1.5, 0, 5000)]),   # 7.5 -> 8
+        ("bonus fractional", S("session-a", 10, 1000), [], [B(1.25, 0, 5000)]),      # 12.5 -> 13
+        ("override beats bonus", S("session-a", 100, 1000), [O("session-a", 30)], [B(2.0, 0, 5000)]),
+        ("zero base with bonus", S("session-a", 0, 1000), [], [B(2.0, 0, 5000)]),
+    ]:
+        cases.append({"name": name, "session": session, "overrides": overrides, "bonuses": bonuses,
+                      "expectedEarnMinutes": resolve_earn(session, overrides, bonuses)})
+    return {"cases": cases}
+
+
 # ---------------------------------------------------------------- status
 def hm(s):
     h, m = s.split(":")
@@ -226,5 +260,6 @@ def write(name, data):
 if __name__ == "__main__":
     write("qualification.json", qualification())
     write("ledger.json", ledger())
+    write("earn.json", earn())
     write("status.json", status_cases())
     print("ok")

@@ -1,0 +1,226 @@
+{
+  "cases": [
+    {
+      "name": "no override no bonus",
+      "session": {
+        "id": "session-a",
+        "earnedMinutes": 100,
+        "startedAt": 1000,
+        "endedAt": 1801000
+      },
+      "overrides": [],
+      "bonuses": [],
+      "expectedEarnMinutes": 100
+    },
+    {
+      "name": "override replaces",
+      "session": {
+        "id": "session-a",
+        "earnedMinutes": 100,
+        "startedAt": 1000,
+        "endedAt": 1801000
+      },
+      "overrides": [
+        {
+          "sessionId": "session-a",
+          "earnedMinutes": 40
+        }
+      ],
+      "bonuses": [],
+      "expectedEarnMinutes": 40
+    },
+    {
+      "name": "override zero voids",
+      "session": {
+        "id": "session-a",
+        "earnedMinutes": 100,
+        "startedAt": 1000,
+        "endedAt": 1801000
+      },
+      "overrides": [
+        {
+          "sessionId": "session-a",
+          "earnedMinutes": 0
+        }
+      ],
+      "bonuses": [],
+      "expectedEarnMinutes": 0
+    },
+    {
+      "name": "override for other session ignored",
+      "session": {
+        "id": "session-a",
+        "earnedMinutes": 100,
+        "startedAt": 1000,
+        "endedAt": 1801000
+      },
+      "overrides": [
+        {
+          "sessionId": "session-b",
+          "earnedMinutes": 0
+        }
+      ],
+      "bonuses": [],
+      "expectedEarnMinutes": 100
+    },
+    {
+      "name": "bonus doubles",
+      "session": {
+        "id": "session-a",
+        "earnedMinutes": 100,
+        "startedAt": 1000,
+        "endedAt": 1801000
+      },
+      "overrides": [],
+      "bonuses": [
+        {
+          "multiplier": 2.0,
+          "startsAt": 0,
+          "endsAt": 2000
+        }
+      ],
+      "expectedEarnMinutes": 200
+    },
+    {
+      "name": "bonus start inclusive",
+      "session": {
+        "id": "session-a",
+        "earnedMinutes": 100,
+        "startedAt": 1000,
+        "endedAt": 1801000
+      },
+      "overrides": [],
+      "bonuses": [
+        {
+          "multiplier": 2.0,
+          "startsAt": 1000,
+          "endsAt": 2000
+        }
+      ],
+      "expectedEarnMinutes": 200
+    },
+    {
+      "name": "bonus end exclusive",
+      "session": {
+        "id": "session-a",
+        "earnedMinutes": 100,
+        "startedAt": 1000,
+        "endedAt": 1801000
+      },
+      "overrides": [],
+      "bonuses": [
+        {
+          "multiplier": 2.0,
+          "startsAt": 0,
+          "endsAt": 1000
+        }
+      ],
+      "expectedEarnMinutes": 100
+    },
+    {
+      "name": "overlapping bonuses take max",
+      "session": {
+        "id": "session-a",
+        "earnedMinutes": 100,
+        "startedAt": 1000,
+        "endedAt": 1801000
+      },
+      "overrides": [],
+      "bonuses": [
+        {
+          "multiplier": 1.5,
+          "startsAt": 0,
+          "endsAt": 5000
+        },
+        {
+          "multiplier": 3.0,
+          "startsAt": 500,
+          "endsAt": 1500
+        },
+        {
+          "multiplier": 2.0,
+          "startsAt": 0,
+          "endsAt": 5000
+        }
+      ],
+      "expectedEarnMinutes": 300
+    },
+    {
+      "name": "bonus rounds half away",
+      "session": {
+        "id": "session-a",
+        "earnedMinutes": 5,
+        "startedAt": 1000,
+        "endedAt": 1801000
+      },
+      "overrides": [],
+      "bonuses": [
+        {
+          "multiplier": 1.5,
+          "startsAt": 0,
+          "endsAt": 5000
+        }
+      ],
+      "expectedEarnMinutes": 8
+    },
+    {
+      "name": "bonus fractional",
+      "session": {
+        "id": "session-a",
+        "earnedMinutes": 10,
+        "startedAt": 1000,
+        "endedAt": 1801000
+      },
+      "overrides": [],
+      "bonuses": [
+        {
+          "multiplier": 1.25,
+          "startsAt": 0,
+          "endsAt": 5000
+        }
+      ],
+      "expectedEarnMinutes": 13
+    },
+    {
+      "name": "override beats bonus",
+      "session": {
+        "id": "session-a",
+        "earnedMinutes": 100,
+        "startedAt": 1000,
+        "endedAt": 1801000
+      },
+      "overrides": [
+        {
+          "sessionId": "session-a",
+          "earnedMinutes": 30
+        }
+      ],
+      "bonuses": [
+        {
+          "multiplier": 2.0,
+          "startsAt": 0,
+          "endsAt": 5000
+        }
+      ],
+      "expectedEarnMinutes": 30
+    },
+    {
+      "name": "zero base with bonus",
+      "session": {
+        "id": "session-a",
+        "earnedMinutes": 0,
+        "startedAt": 1000,
+        "endedAt": 1801000
+      },
+      "overrides": [],
+      "bonuses": [
+        {
+          "multiplier": 2.0,
+          "startsAt": 0,
+          "endsAt": 5000
+        }
+      ],
+      "expectedEarnMinutes": 0
+    }
+  ]
+}
