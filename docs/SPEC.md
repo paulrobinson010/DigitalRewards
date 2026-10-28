@@ -1,4 +1,4 @@
-# DigitalRewards — Product & Technical Spec (v0.3)
+# DigitalRewards — Product & Technical Spec (v0.4)
 
 Kids earn gaming time by doing physical activity. Each qualifying minute of
 activity buys gaming minutes at a per-child ratio (default **1:10**). Working
@@ -26,6 +26,9 @@ above the bar.
 - Each child has **their own iPhone** with a **child Apple ID** in the parent's
   Family Sharing group. The watch is **paired to the child's iPhone**.
 - **Several children** are supported from day one, each with their own rules and balance.
+- **Several parents/guardians**, all **equal**: any parent can add children, change
+  rules, adjust balances, manage allowed lists and invite other parents. Each parent
+  uses their own Apple ID and chooses their own alerts.
 - Each child has **their own standard (non-admin) Windows account**. A shared
   PC is fine: one Windows account maps to one child.
 
@@ -69,7 +72,7 @@ above the bar.
   Apple's picker on the child's device.
 
 ### Parent alerts
-All four alerts are on, and each can be toggled per child:
+All four alerts are on by default; **each parent** toggles them per child for themselves:
 - device stopped reporting (possible tampering)
 - suspicious session
 - child went into debit
@@ -84,13 +87,34 @@ side writes only its own zone and gets a **read-only** share of the other.
 
 | Zone | Owner | Contains | Shared to |
 |------|-------|----------|-----------|
-| `Family-<childId>` (one per child) | Parent | `Child`, `Rules`, `Adjustment`, `AllowList` | That child, **read-only** |
-| `Activity` | Child | `Session`, `Spend`, `Device` | Parent(s), **read-only** |
+| `Family-<childId>` (one per child) | The parent who added the child | `Child`, `Rules`, `Adjustment`, `AllowList`, `Parent` | All other parents **read-write**; that child **read-only** |
+| `Activity` | Child | `Session`, `Spend`, `Device` | Every parent, **read-only** |
+| `Prefs` | Each parent (not shared) | That parent's alert choices per child | — |
 
-- **Pairing flow**: the parent adds a child in Parent mode, which creates the `Family-<childId>` zone and a
-  zone-wide `CKShare`. The share link is sent via Messages/AirDrop and opened on the child's iPhone. Child mode
-  accepts it, creates its own `Activity` zone and shares it back to the parent.
-- A second parent is added as a participant on every family zone and every activity share.
+CloudKit share permissions are per participant, so one zone-wide `CKShare` can
+give parents read-write and the child read-only.
+
+- **Add a child**: any parent creates the `Family-<childId>` zone (owned by them) and a
+  zone-wide `CKShare`, adds the other parents as read-write participants, and sends
+  the child an invite link via Messages/AirDrop. Child mode accepts it, creates its own
+  `Activity` zone and shares it back read-only to every parent.
+- **Invite a parent**: any parent enters the other adult's Apple ID email or phone number. The app
+  adds them as a read-write participant to every child's `Family` zone, and writes a
+  `Parent` record there. Each child's app sees the new `Parent` record and adds that
+  parent to its `Activity` share automatically.
+  - Participants who don't own a zone can only add others if they have the share's
+    **administrator** role (iOS 16+). Every parent is made an administrator so
+    any parent can invite. *Verify in the sharing spike.* The fallback is that only the zone
+    owner can invite, and the app asks that parent to do it.
+- **Remove a parent**: any parent can remove another from all shares; the
+  child's app removes them from `Activity` when their `Parent` record disappears.
+- **Ownership risk**: a `Family` zone lives in the iCloud of the parent who created it.
+  If that parent leaves (or deletes their account), another parent uses **"Take over
+  child"**, which copies the zone into their own iCloud and re-shares it. Children's
+  history is safe either way because it's in the child's own `Activity` zone.
+- **Concurrent edits**: if two parents edit `Rules` at once, CloudKit rejects the
+  second save (`serverRecordChanged`). The app reloads and shows what changed before
+  saving again. Adjustments are separate records, so they never conflict.
 
 ### Records
 
@@ -98,8 +122,9 @@ side writes only its own zone and gets a **read-only** share of the other.
 Child        (Family)   name, birthYear, timeZone
 Rules        (Family)   ratio, walkCadenceSpm, walkHrPct, otherHrPct, qualifyFraction,
                         debitLimit, maxBank?, playWindows? (JSON), dailyPlayCap?,
-                        alerts (JSON), updatedAt
-Adjustment   (Family)   minutes (±), note, createdAt
+                        updatedAt, updatedBy
+Adjustment   (Family)   minutes (±), note, createdAt (createdBy = parent's iCloud user)
+Parent       (Family)   recordName = parent's iCloud user ID; displayName
 AllowList    (Family)   recordName = deviceId; allowed executables (JSON)
 Session      (Activity) recordName = session UUID; activityType, startedAt, endedAt,
                         minutes (JSON per-minute results), qualifyingMinutes,
@@ -110,7 +135,8 @@ Device       (Activity) recordName = deviceId; kind [watch|ios|windows], name,
 ```
 
 - Unique record names make every write **idempotent**.
-- Everything except `Rules`/`AllowList`/`Child` is append-only, so syncing merges with no conflicts.
+- The ledger and Rules history show **which parent** made each adjustment or change.
+- Everything except `Rules`/`AllowList`/`Child`/`Parent` is append-only, so syncing merges with no conflicts.
 
 ### Balance (computed on every client)
 A deterministic fold over `Session.earnedMinutes` (+), `Spend` (−) and `Adjustment`
@@ -155,9 +181,10 @@ once in C#, both checked against the same JSON test vectors.
   - Custom shield screen: "Out of minutes. Go for a walk!" plus the balance.
 
 ### Parent mode
-- List of children with their balances.
+- List of children (from every `Family` zone this parent owns or is shared into) with their balances.
+- Parents screen: invite or remove a parent, "Take over child".
 - Per child: rules editor, ledger + add adjustment, devices (last seen),
-  per-PC allowed list (ticked from `Device.detectedApps`), alert toggles.
+  per-PC allowed list (ticked from `Device.detectedApps`), alert toggles (just for this parent, stored in their `Prefs`).
 - Add child / pairing flow (section 3).
 
 ## 6. Windows enforcer
@@ -190,7 +217,9 @@ iCloud Drive (iCloud for Windows). Decide after the spike.
 ## 7. Phases
 
 1. **Spikes**
-   - CloudKit zone-wide sharing parent ⇄ child Apple ID (read-only both ways).
+   - CloudKit zone-wide sharing: two parents (read-write) + child Apple ID
+     (read-only), child's zone back to both parents (read-only), administrator
+     role letting a non-owner parent invite.
    - .NET console app: CloudKit web sign-in, read the shared zone, write the private zone,
      token refresh.
    - Family Controls: per-minute `DeviceActivity` thresholds, accuracy,
