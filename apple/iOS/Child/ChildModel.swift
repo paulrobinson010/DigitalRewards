@@ -26,22 +26,30 @@ final class ChildModel {
     var history: [HistoryItem] { state.map(HistoryBuilder.items(for:)) ?? [] }
 
     func refresh() async {
+        // Show the local mirror straight away; the fetch below only brings changes.
+        if let local = await localState() {
+            state = local
+            phase = .ready
+        }
         guard !isRefreshing else { return }
         isRefreshing = true
         defer { isRefreshing = false }
         do {
             guard await store.accountAvailable() else { throw CloudStoreError.notSignedIn }
-            guard let familyZone = try await ChildLocator.findFamilyZone(store: store),
-                  let family = try await SnapshotLoader.family(familyZone, store: store) else {
+            try await SyncEngine.shared.sync(.sharedDB)
+            try await SyncEngine.shared.sync(.privateDB)
+            guard let familyZone = await ChildLocator.findFamilyZone(),
+                  let family = await SnapshotLoader.cachedFamily(familyZone) else {
+                state = nil
                 phase = .needsJoin
                 return
             }
 
-            var activity = try? await SnapshotLoader.activity(ChildLocator.activityZone, store: store)
-            if activity?.link?.childId != family.childId {
+            var activity = await SnapshotLoader.cachedActivity(ChildLocator.activityZone)
+            if activity.link?.childId != family.childId {
                 // First run on this account, or re-joined after a take-over.
                 try await ChildSetup.setUpActivity(family: familyZone, store: store)
-                activity = try await SnapshotLoader.activity(ChildLocator.activityZone, store: store)
+                activity = try await SnapshotLoader.activity(ChildLocator.activityZone)
                 lastParentKeys = parentKeys(family)
             }
 
@@ -53,8 +61,22 @@ final class ChildModel {
             await afterRefresh(newState)
         } catch {
             errorMessage = error.localizedDescription
-            if state == nil, phase == .loading { phase = .needsJoin }
+            // Offline or failed: keep showing what this device has, including its own writes.
+            if let local = await localState() {
+                state = local
+                phase = .ready
+            } else if state == nil, phase == .loading {
+                phase = .needsJoin
+            }
         }
+    }
+
+    /// The child's state from the local mirror only.
+    private func localState() async -> ChildState? {
+        guard let zone = await ChildLocator.findFamilyZone(),
+              let family = await SnapshotLoader.cachedFamily(zone) else { return nil }
+        let activity = await SnapshotLoader.cachedActivity(ChildLocator.activityZone)
+        return ChildState(family: family, activity: activity.link?.childId == family.childId ? activity : nil)
     }
 
     func join(code: String) async throws {

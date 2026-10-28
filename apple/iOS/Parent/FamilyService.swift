@@ -193,7 +193,7 @@ enum FamilyService {
         let shares = try await store.acceptShares(invite.shareURLs)
         for share in shares {
             let zone = ZoneRef(zoneID: share.recordID.zoneID, scope: .sharedDB)
-            if let family = try? await SnapshotLoader.family(zone, store: store) {
+            if let family = try? await SnapshotLoader.family(zone) {
                 await ensureMyParentRecord(family: family, me: me, store: store)
             }
         }
@@ -318,9 +318,9 @@ enum FamilyService {
         try await store.upsert([list.makeRecord(zoneID: family.zone.zoneID)], scope: family.zone.scope)
     }
 
-    static func loadAlertPrefs(store: CloudStore = .shared) async -> [String: AlertPrefsInfo] {
-        let zone = ZoneRef.privateZone(AppConfig.prefsZoneName)
-        guard let records = try? await store.fetchAllRecords(in: zone) else { return [:] }
+    /// From the private-database mirror; sync `.privateDB` first for fresh values.
+    static func loadAlertPrefs() async -> [String: AlertPrefsInfo] {
+        let records = await SyncEngine.shared.records(in: .privateZone(AppConfig.prefsZoneName))
         var result: [String: AlertPrefsInfo] = [:]
         for r in records where r.recordType == RecordType.alertPrefs {
             let childId = String(r.recordID.recordName.dropFirst("alerts-".count))

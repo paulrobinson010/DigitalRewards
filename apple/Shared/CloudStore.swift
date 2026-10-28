@@ -108,35 +108,112 @@ final class CloudStore: @unchecked Sendable {
         }
     }
 
-    /// Every record in a zone, using a zone-changes fetch from scratch. Needs no
-    /// queryable indexes. Excludes the zone's share record.
+    /// Every record in a zone, fetched from scratch. Routine refreshes go through
+    /// `SyncEngine` instead; this is for one-off copies (take-over).
     func fetchAllRecords(in zone: ZoneRef) async throws -> [CKRecord] {
+        var byName: [String: CKRecord] = [:]
+        var token: CKServerChangeToken?
+        while true {
+            let page = try await fetchZoneChanges(zone, since: token)
+            for event in page.events {
+                byName[event.name] = event.record
+            }
+            let advanced = page.token != nil && page.token != token
+            token = page.token ?? token
+            if !page.moreComing || !advanced { break }
+        }
+        return Array(byName.values)
+    }
+
+    // MARK: Change fetches (used by SyncEngine)
+
+    /// Changes in one zone since `token` (nil = everything). Excludes the zone's share record.
+    struct ZoneChanges {
+        /// In arrival order. A nil record means the record was deleted.
+        var events: [(name: String, record: CKRecord?)] = []
+        var token: CKServerChangeToken?
+        var moreComing = false
+    }
+
+    func fetchZoneChanges(_ zone: ZoneRef, since token: CKServerChangeToken?) async throws -> ZoneChanges {
         let db = database(zone.scope)
         let zoneID = zone.zoneID
         return try await withCheckedThrowingContinuation { continuation in
-            let records = Box<[CKRecord]>([])
+            let changes = Box(ZoneChanges())
             let zoneError = Box<Error?>(nil)
             let config = CKFetchRecordZoneChangesOperation.ZoneConfiguration()
-            config.previousServerChangeToken = nil
+            config.previousServerChangeToken = token
             let op = CKFetchRecordZoneChangesOperation(recordZoneIDs: [zoneID],
                                                        configurationsByRecordZoneID: [zoneID: config])
             op.fetchAllChanges = true
-            op.recordWasChangedBlock = { _, result in
+            op.recordWasChangedBlock = { id, result in
                 if case .success(let record) = result, record.recordType != "cloudkit.share" {
-                    records.value.append(record)
+                    changes.value.events.append((name: id.recordName, record: record))
                 }
             }
+            op.recordWithIDWasDeletedBlock = { id, _ in
+                changes.value.events.append((name: id.recordName, record: nil))
+            }
+            op.recordZoneChangeTokensUpdatedBlock = { _, newToken, _ in
+                if let newToken { changes.value.token = newToken }
+            }
             op.recordZoneFetchResultBlock = { _, result in
-                if case .failure(let error) = result { zoneError.value = error }
+                switch result {
+                case .success(let value):
+                    changes.value.token = value.serverChangeToken
+                    changes.value.moreComing = value.moreComing
+                case .failure(let error):
+                    zoneError.value = error
+                }
             }
             op.fetchRecordZoneChangesResultBlock = { result in
+                if let error = zoneError.value {
+                    continuation.resume(throwing: error)
+                    return
+                }
                 switch result {
                 case .success:
-                    if let error = zoneError.value {
-                        continuation.resume(throwing: error)
-                    } else {
-                        continuation.resume(returning: records.value)
-                    }
+                    continuation.resume(returning: changes.value)
+                case .failure(let error):
+                    continuation.resume(throwing: CloudStore.itemError(error, for: zoneID))
+                }
+            }
+            db.add(op)
+        }
+    }
+
+    /// Zones changed or deleted in a database since `token` (nil = all zones).
+    struct DatabaseChanges {
+        var changedZoneIDs: [CKRecordZone.ID] = []
+        var deletedZoneIDs: [CKRecordZone.ID] = []
+        var token: CKServerChangeToken?
+        var moreComing = false
+    }
+
+    func fetchDatabaseChanges(_ scope: CloudScope, since token: CKServerChangeToken?) async throws -> DatabaseChanges {
+        let db = database(scope)
+        return try await withCheckedThrowingContinuation { continuation in
+            let changes = Box(DatabaseChanges())
+            let op = CKFetchDatabaseChangesOperation(previousServerChangeToken: token)
+            op.fetchAllChanges = true
+            op.recordZoneWithIDChangedBlock = { zoneID in
+                changes.value.changedZoneIDs.append(zoneID)
+            }
+            op.recordZoneWithIDWasDeletedBlock = { zoneID in
+                changes.value.deletedZoneIDs.append(zoneID)
+            }
+            op.recordZoneWithIDWasPurgedBlock = { zoneID in
+                changes.value.deletedZoneIDs.append(zoneID)
+            }
+            op.changeTokenUpdatedBlock = { newToken in
+                changes.value.token = newToken
+            }
+            op.fetchDatabaseChangesResultBlock = { result in
+                switch result {
+                case .success(let value):
+                    changes.value.token = value.serverChangeToken
+                    changes.value.moreComing = value.moreComing
+                    continuation.resume(returning: changes.value)
                 case .failure(let error):
                     continuation.resume(throwing: error)
                 }
@@ -145,12 +222,26 @@ final class CloudStore: @unchecked Sendable {
         }
     }
 
+    /// The per-item error inside a partial failure, if there is one for `id`.
+    static func itemError(_ error: Error, for id: AnyHashable) -> Error {
+        guard let ck = error as? CKError, ck.code == .partialFailure,
+              let item = ck.partialErrorsByItemID?[id] else { return error }
+        return item
+    }
+
+    // MARK: Writes
+    //
+    // Every successful save or delete is also applied to the local mirror, so the
+    // UI reflects it straight away, even before (or without) the next fetch.
+
     /// Saves records, overwriting whatever is on the server (records with
     /// deterministic names are idempotent this way).
     func upsert(_ records: [CKRecord], scope: CloudScope) async throws {
         guard !records.isEmpty else { return }
         let result = try await database(scope).modifyRecords(saving: records, deleting: [],
                                                              savePolicy: .allKeys, atomically: false)
+        let saved = result.saveResults.values.compactMap { try? $0.get() }
+        await SyncEngine.shared.didSave(saved, scope: scope)
         for (_, r) in result.saveResults {
             if case .failure(let error) = r { throw error }
         }
@@ -163,13 +254,22 @@ final class CloudStore: @unchecked Sendable {
         let result = try await database(scope).modifyRecords(saving: [record], deleting: [],
                                                              savePolicy: .ifServerRecordUnchanged, atomically: false)
         guard let r = result.saveResults[record.recordID] else { return record }
-        return try r.get()
+        let saved = try r.get()
+        await SyncEngine.shared.didSave([saved], scope: scope)
+        return saved
     }
 
     func delete(_ ids: [CKRecord.ID], scope: CloudScope) async throws {
         guard !ids.isEmpty else { return }
         let result = try await database(scope).modifyRecords(saving: [], deleting: ids,
                                                              savePolicy: .allKeys, atomically: false)
+        let gone = result.deleteResults.compactMap { id, r -> CKRecord.ID? in
+            switch r {
+            case .success: return id
+            case .failure(let error): return error.ckCode == .unknownItem ? id : nil
+            }
+        }
+        await SyncEngine.shared.didDelete(gone, scope: scope)
         for (_, r) in result.deleteResults {
             if case .failure(let error) = r, error.ckCode != .unknownItem { throw error }
         }

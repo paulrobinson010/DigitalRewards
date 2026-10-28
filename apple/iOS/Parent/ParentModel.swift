@@ -27,6 +27,7 @@ final class ParentModel {
     var errorMessage: String?
 
     private let store = CloudStore.shared
+    private let engine = SyncEngine.shared
     private var subscribed = false
 
     /// Every parent across all families, de-duplicated.
@@ -79,20 +80,32 @@ final class ParentModel {
     // MARK: Loading
 
     func refresh() async {
-        guard let profile, !isRefreshing else { return }
+        guard let profile else { return }
+        // Show the local mirror straight away: the last known state at launch, and this
+        // device's own writes immediately after a save. The fetch below only brings changes.
+        await showLocalCopy()
+        guard !isRefreshing else { return }
         isRefreshing = true
         defer { isRefreshing = false }
         do {
             guard await store.accountAvailable() else { throw CloudStoreError.notSignedIn }
-            var (families, activities) = try await loadZones()
+            try await engine.sync(.privateDB)
+            try await engine.sync(.sharedDB)
+            var (families, activities) = await loadZones()
 
             // Accept Activity shares for children who have joined but whose share we haven't accepted yet.
-            var acceptedAny = false
+            var accepted: [CKShare] = []
             for family in families where activities[family.childId] == nil {
-                if await acceptActivityShare(childId: family.childId) { acceptedAny = true }
+                accepted += await acceptActivityShare(childId: family.childId)
             }
-            if acceptedAny {
-                (families, activities) = try await loadZones()
+            if !accepted.isEmpty {
+                // Fetch the new zones directly rather than relying on them appearing in the
+                // shared database's change feed straight away.
+                for share in accepted {
+                    try? await engine.syncZone(ZoneRef(zoneID: share.recordID.zoneID, scope: .sharedDB))
+                }
+                try await engine.sync(.sharedDB)
+                (families, activities) = await loadZones()
             }
 
             for family in families {
@@ -100,11 +113,8 @@ final class ParentModel {
             }
 
             let now = Date()
-            children = families
-                .map { ChildEntry(state: ChildState(family: $0, activity: activities[$0.childId], now: now),
-                                  hasActivity: activities[$0.childId] != nil) }
-                .sorted { $0.state.name.localizedCaseInsensitiveCompare($1.state.name) == .orderedAscending }
-            prefs = await FamilyService.loadAlertPrefs(store: store)
+            children = Self.entries(families: families, activities: activities, now: now)
+            prefs = await FamilyService.loadAlertPrefs()
             hasLoaded = true
             errorMessage = nil
 
@@ -112,22 +122,40 @@ final class ParentModel {
             await subscribeIfNeeded()
         } catch {
             errorMessage = error.localizedDescription
+            // Offline or failed: keep showing what this device has, including its own writes.
+            await showLocalCopy()
             hasLoaded = true
         }
     }
 
-    /// Family zones (one per child; if a take-over left two, the one in this
-    /// parent's own iCloud or the most recently changed wins) and Activity zones by child id.
-    private func loadZones() async throws -> ([FamilySnapshot], [String: ActivitySnapshot]) {
-        let privateZones = try await store.allZones(.privateDB)
-        let sharedZones = try await store.allZones(.sharedDB)
+    /// Children from the local mirror only (no network).
+    private func showLocalCopy() async {
+        let (families, activities) = await loadZones()
+        guard !families.isEmpty else { return }
+        children = Self.entries(families: families, activities: activities, now: Date())
+        prefs = await FamilyService.loadAlertPrefs()
+        hasLoaded = true
+    }
 
-        var refs = privateZones.map { ZoneRef(zoneID: $0.zoneID, scope: .privateDB) }
-        refs += sharedZones.map { ZoneRef(zoneID: $0.zoneID, scope: .sharedDB) }
+    private static func entries(families: [FamilySnapshot], activities: [String: ActivitySnapshot],
+                                now: Date) -> [ChildEntry] {
+        families
+            .map { ChildEntry(state: ChildState(family: $0, activity: activities[$0.childId], now: now),
+                              hasActivity: activities[$0.childId] != nil) }
+            .sorted { $0.state.name.localizedCaseInsensitiveCompare($1.state.name) == .orderedAscending }
+    }
+
+    /// Family zones (one per child; if a take-over left two, the one in this
+    /// parent's own iCloud or the most recently changed wins) and Activity zones by
+    /// child id, built from the local mirror.
+    private func loadZones() async -> ([FamilySnapshot], [String: ActivitySnapshot]) {
+        let privateZones = await engine.knownZones(.privateDB)
+        let sharedZones = await engine.knownZones(.sharedDB)
+        let refs = privateZones + sharedZones
 
         var familyByChild: [String: FamilySnapshot] = [:]
         for ref in refs where ref.zoneName.hasPrefix(AppConfig.familyZonePrefix) {
-            guard let family = try? await SnapshotLoader.family(ref, store: store) else { continue }
+            guard let family = await SnapshotLoader.cachedFamily(ref) else { continue }
             if let existing = familyByChild[family.childId] {
                 let preferNew = (ref.scope == .privateDB && existing.zone.scope != .privateDB)
                     || (ref.scope == existing.zone.scope && family.lastModified > existing.lastModified)
@@ -138,18 +166,18 @@ final class ParentModel {
 
         var activities: [String: ActivitySnapshot] = [:]
         for ref in refs where ref.scope == .sharedDB && ref.zoneName == AppConfig.activityZoneName {
-            guard let activity = try? await SnapshotLoader.activity(ref, store: store),
-                  let childId = activity.link?.childId else { continue }
+            let activity = await SnapshotLoader.cachedActivity(ref)
+            guard let childId = activity.link?.childId else { continue }
             activities[childId] = activity
         }
         return (Array(familyByChild.values), activities)
     }
 
-    private func acceptActivityShare(childId: String) async -> Bool {
+    private func acceptActivityShare(childId: String) async -> [CKShare] {
         let id = CKRecord.ID(recordName: ShareLinkRecord.recordName(childId: childId))
         guard let record = try? await store.fetch(id, scope: .publicDB),
-              let text = record.string("shareURL"), let url = URL(string: text) else { return false }
-        return (try? await store.acceptShares([url]))?.isEmpty == false
+              let text = record.string("shareURL"), let url = URL(string: text) else { return [] }
+        return (try? await store.acceptShares([url])) ?? []
     }
 
     private func subscribeIfNeeded() async {

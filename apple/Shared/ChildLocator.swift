@@ -23,16 +23,17 @@ enum ChildLocator {
         }
     }
 
-    /// The `Family-*` zone shared to this child. Prefers the one remembered from
-    /// the last join (a child can see an old zone after a parent "takes over").
-    static func findFamilyZone(store: CloudStore = .shared) async throws -> ZoneRef? {
-        let zones = try await store.allZones(.sharedDB)
-            .map(\.zoneID)
+    /// The `Family-*` zone shared to this child, from the shared-database mirror
+    /// (call `SyncEngine.sync(.sharedDB)` first for an up-to-date answer). Prefers
+    /// the one remembered from the last join (a child can see an old zone after a
+    /// parent "takes over").
+    static func findFamilyZone() async -> ZoneRef? {
+        let zones = await SyncEngine.shared.knownZones(.sharedDB)
             .filter { $0.zoneName.hasPrefix(AppConfig.familyZonePrefix) }
         if let preferred = preferredFamilyZone,
            zones.contains(where: { $0.zoneName == preferred.zoneName && $0.ownerName == preferred.ownerName }) {
             return preferred
         }
-        return zones.first.map { ZoneRef(zoneID: $0, scope: .sharedDB) }
+        return zones.first
     }
 }

@@ -31,8 +31,9 @@ final class WatchStore: NSObject, WCSessionDelegate {
             if let known = context?.familyZone, ChildLocator.preferredFamilyZone == nil {
                 ChildLocator.preferredFamilyZone = known
             }
-            guard let zone = try await ChildLocator.findFamilyZone(),
-                  let family = try await SnapshotLoader.family(zone) else { return }
+            try await SyncEngine.shared.sync(.sharedDB)
+            guard let zone = await ChildLocator.findFamilyZone(),
+                  let family = await SnapshotLoader.cachedFamily(zone) else { return }
             apply(WatchContext(childId: family.childId, childName: family.child.name,
                                birthYear: family.child.birthYear, rules: family.rules,
                                bonuses: family.bonuses, familyZone: zone, updatedAt: Date()))

@@ -86,6 +86,16 @@ Windows PC    (child's Apple ID) writes Spend/Device ─▶ child's Activity zon
   "2× bonus" badge on boosted workouts), and rules changes with a diff summary.
 - **Watch** gets rules, birth year and bonuses from the iPhone over WatchConnectivity and directly
   from CloudKit. It saves `Session` with the *base* minutes; bonuses are shown live but applied at fold time.
+- **Sync** (`Shared/SyncEngine.swift`): each device keeps a local mirror of the zones it reads, in Caches.
+  - Each refresh asks CloudKit which zones changed since the last database change token (private and
+    shared DBs), then fetches only the records changed or deleted in those zones since each zone's own
+    change token.
+  - Records and tokens are written together, as a base file plus small delta files, so a token is never
+    saved ahead of its records.
+  - The app's own saves and deletes go into the mirror immediately, and screens are built from the
+    mirror, so the last known state shows at launch and offline.
+  - An expired token, a deleted zone, a purged cache or a different iCloud account makes that part start
+    again from scratch. The watch mirrors only the shared DB, which holds the family zone.
 
 ## Testing order
 
@@ -112,7 +122,4 @@ Windows PC    (child's Apple ID) writes Spend/Device ─▶ child's Activity zon
 - **Alerts** are local notifications posted after a refresh triggered by a CloudKit silent push
   or a background refresh. iOS throttles both, so alerts can be late. "PC stopped reporting" only fires
   when a refresh runs.
-- **Full zone fetch**: every refresh downloads each zone in full, with no change tokens. That's fine for months of
-  data. A year of daily PC play is ~20k `Spend` records, so add change-token caching before then.
-- Offline display isn't cached on iPhone: the app shows data after the first successful refresh each launch.
 - No app icons are included.

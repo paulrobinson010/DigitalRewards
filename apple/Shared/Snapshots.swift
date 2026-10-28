@@ -110,14 +110,27 @@ struct ChildState {
     }
 }
 
-/// Loads snapshots from CloudKit.
+/// Builds snapshots from the local mirror (`SyncEngine`). `family`/`activity`
+/// first bring that one zone up to date; the `cached` variants never touch the network.
 enum SnapshotLoader {
-    static func family(_ zone: ZoneRef, store: CloudStore = .shared) async throws -> FamilySnapshot? {
-        FamilySnapshot(zone: zone, records: try await store.fetchAllRecords(in: zone))
+    static func family(_ zone: ZoneRef) async throws -> FamilySnapshot? {
+        try await SyncEngine.shared.syncZone(zone)
+        return await cachedFamily(zone)
     }
 
-    static func activity(_ zone: ZoneRef, store: CloudStore = .shared) async throws -> ActivitySnapshot {
-        ActivitySnapshot(zone: zone, records: try await store.fetchAllRecords(in: zone))
+    static func activity(_ zone: ZoneRef) async throws -> ActivitySnapshot {
+        try await SyncEngine.shared.syncZone(zone)
+        return await cachedActivity(zone)
+    }
+
+    static func cachedFamily(_ zone: ZoneRef) async -> FamilySnapshot? {
+        let records = await SyncEngine.shared.records(in: zone)
+        return FamilySnapshot(zone: zone, records: records)
+    }
+
+    static func cachedActivity(_ zone: ZoneRef) async -> ActivitySnapshot {
+        let records = await SyncEngine.shared.records(in: zone)
+        return ActivitySnapshot(zone: zone, records: records)
     }
 }
 

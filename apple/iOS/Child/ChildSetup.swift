@@ -36,7 +36,7 @@ enum ChildSetup {
     /// Creates the Activity zone, its Link record and its share, and publishes the
     /// share URL so parents' apps can accept it. Safe to call repeatedly.
     static func setUpActivity(family zone: ZoneRef, store: CloudStore = .shared) async throws {
-        guard let family = try await SnapshotLoader.family(zone, store: store) else {
+        guard let family = try await SnapshotLoader.family(zone) else {
             throw CloudStoreError.inviteNotFound
         }
         let activity = try await store.ensurePrivateZone(AppConfig.activityZoneName)
