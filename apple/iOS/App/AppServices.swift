@@ -16,12 +16,19 @@ final class AppServices {
     let child = ChildModel()
     let parent = ParentModel()
 
+    /// Backing storage (tracked by @Observable); `mode` persists on every change.
+    private var storedMode: AppMode?
+
     var mode: AppMode? {
-        didSet { UserDefaults.standard.set(mode?.rawValue, forKey: Self.modeKey) }
+        get { storedMode }
+        set {
+            storedMode = newValue
+            UserDefaults.standard.set(newValue?.rawValue, forKey: Self.modeKey)
+        }
     }
 
     init() {
-        mode = UserDefaults.standard.string(forKey: Self.modeKey).flatMap(AppMode.init(rawValue:))
+        storedMode = UserDefaults.standard.string(forKey: Self.modeKey).flatMap(AppMode.init(rawValue:))
     }
 
     func refresh() async {

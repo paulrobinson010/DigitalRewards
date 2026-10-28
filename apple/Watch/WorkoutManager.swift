@@ -212,10 +212,11 @@ final class WorkoutManager: NSObject {
 
     private func startPedometer() {
         guard activity == .walk, CMPedometer.isCadenceAvailable() else { return }
-        pedometer.startUpdates(from: Date()) { [weak self] data, _ in
+        // Delivered on a background queue: hop to the main actor explicitly.
+        pedometer.startUpdates(from: Date()) { @Sendable [weak self] data, _ in
             // currentCadence is steps per second.
             let stepsPerMinute = data?.currentCadence.map { $0.doubleValue * 60 }
-            Task { @MainActor in
+            Task { @MainActor [weak self] in
                 self?.updateCadence(stepsPerMinute)
             }
         }

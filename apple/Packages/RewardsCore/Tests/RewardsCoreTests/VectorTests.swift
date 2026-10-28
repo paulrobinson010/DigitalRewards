@@ -11,7 +11,7 @@ final class VectorTests: XCTestCase {
         return url.appendingPathComponent("shared/test-vectors")
     }
 
-    private func load<T: Decodable>(_ name: String, as: T.Type) throws -> T {
+    private func load<T: Decodable>(_ name: String, as type: T.Type) throws -> T {
         let data = try Data(contentsOf: Self.vectorsDir.appendingPathComponent(name))
         return try JSONDecoder().decode(T.self, from: data)
     }

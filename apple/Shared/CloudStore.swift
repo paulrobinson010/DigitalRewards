@@ -103,7 +103,7 @@ final class CloudStore: @unchecked Sendable {
     func fetch(_ id: CKRecord.ID, scope: CloudScope) async throws -> CKRecord? {
         do {
             return try await database(scope).record(for: id)
-        } catch where error.ckCode == .unknownItem {
+        } catch let error where error.ckCode == .unknownItem {
             return nil
         }
     }
@@ -211,7 +211,7 @@ final class CloudStore: @unchecked Sendable {
             let found = Box<[String: CKShare.Participant]>([:])
             let op = CKFetchShareParticipantsOperation(userIdentityLookupInfos: lookups)
             op.perShareParticipantResultBlock = { lookup, result in
-                if case .success(let participant) = result, let key = Self.key(for: lookup) {
+                if case .success(let participant) = result, let key = CloudStore.key(for: lookup) {
                     found.value[key] = participant
                 }
             }

@@ -60,7 +60,7 @@ struct BalanceCard: View {
                 .foregroundStyle(.secondary)
             Text(Fmt.minutes(status.balance))
                 .font(.system(size: 48, weight: .bold, design: .rounded))
-                .foregroundStyle(status.balance < 0 ? .red : .green)
+                .foregroundStyle(status.balance < 0 ? Color.red : Color.green)
                 .contentTransition(.numericText())
             if status.canPlay {
                 Text("Can play \(Fmt.minutes(status.minutesAvailable)) now")

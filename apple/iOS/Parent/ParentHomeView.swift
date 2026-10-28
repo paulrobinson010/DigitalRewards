@@ -163,7 +163,7 @@ struct InviteCodeView: View {
         VStack(spacing: 20) {
             Text(message)
                 .multilineTextAlignment(.center)
-            Text(code.prefix(3) + " " + code.suffix(3))
+            Text(String(code.prefix(3)) + " " + String(code.suffix(3)))
                 .font(.system(size: 44, weight: .bold, design: .monospaced))
                 .textSelection(.enabled)
             Text("The code works for 7 days.")
