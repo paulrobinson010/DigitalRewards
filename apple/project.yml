@@ -1,0 +1,112 @@
+# Generate the Xcode project with:  brew install xcodegen && xcodegen generate
+name: DigitalRewards
+options:
+  bundleIdPrefix: com.digitalrewards
+  deploymentTarget:
+    iOS: "17.0"
+    watchOS: "10.0"
+  createIntermediateGroups: true
+  developmentLanguage: en
+
+settings:
+  base:
+    DEVELOPMENT_TEAM: ""          # <- your Apple Developer Team ID
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    CODE_SIGN_STYLE: Automatic
+
+packages:
+  RewardsCore:
+    path: Packages/RewardsCore
+
+targets:
+  DigitalRewards:
+    type: application
+    platform: iOS
+    sources:
+      - path: iOS
+        excludes: ["Info.plist", "*.entitlements"]
+      - path: Shared
+    dependencies:
+      - package: RewardsCore
+      - target: DigitalRewardsWatch
+        embed: true
+        copy:
+          destination: productsDirectory
+          subpath: $(CONTENTS_FOLDER_PATH)/Watch
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.digitalrewards.app
+        TARGETED_DEVICE_FAMILY: "1,2"
+    info:
+      path: iOS/Info.plist
+      properties:
+        CFBundleDisplayName: DigitalRewards
+        UILaunchScreen: {}
+        CKSharingSupported: true
+        UIBackgroundModes: [remote-notification, fetch]
+        BGTaskSchedulerPermittedIdentifiers: [com.digitalrewards.app.refresh]
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+    entitlements:
+      path: iOS/DigitalRewards.entitlements
+      properties:
+        com.apple.developer.icloud-container-identifiers: [iCloud.com.digitalrewards.app]
+        com.apple.developer.icloud-services: [CloudKit]
+        aps-environment: development
+
+  DigitalRewardsWatch:
+    type: application
+    platform: watchOS
+    sources:
+      - path: Watch
+        excludes: ["Info.plist", "*.entitlements"]
+      - path: Shared
+    dependencies:
+      - package: RewardsCore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.digitalrewards.app.watchkitapp
+        TARGETED_DEVICE_FAMILY: "4"
+        SKIP_INSTALL: YES
+    info:
+      path: Watch/Info.plist
+      properties:
+        CFBundleDisplayName: DigitalRewards
+        WKApplication: true
+        WKCompanionAppBundleIdentifier: com.digitalrewards.app
+        WKRunsIndependentlyOfCompanionApp: false
+        WKBackgroundModes: [workout-processing]
+        NSHealthShareUsageDescription: DigitalRewards reads your heart rate during workouts to check you're moving fast enough to earn minutes.
+        NSHealthUpdateUsageDescription: DigitalRewards saves your workouts to the Health app.
+        NSMotionUsageDescription: DigitalRewards uses your step rate to check walks are brisk enough to earn minutes.
+    entitlements:
+      path: Watch/DigitalRewardsWatch.entitlements
+      properties:
+        com.apple.developer.icloud-container-identifiers: [iCloud.com.digitalrewards.app]
+        com.apple.developer.icloud-services: [CloudKit]
+        com.apple.developer.healthkit: true
+        com.apple.developer.healthkit.access: []
+
+schemes:
+  DigitalRewards:
+    build:
+      targets:
+        DigitalRewards: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+    archive:
+      config: Release
+  DigitalRewardsWatch:
+    build:
+      targets:
+        DigitalRewardsWatch: all
+    run:
+      config: Debug

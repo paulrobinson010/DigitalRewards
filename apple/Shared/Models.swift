@@ -116,15 +116,6 @@ struct InviteInfo: Codable, Hashable, Sendable {
     var expiresAt: Date
 }
 
-/// Builds the contract ledger (§3) from the three record types.
-enum LedgerBuilder {
-    static func entries(sessions: [SessionInfo], spends: [SpendInfo], adjustments: [AdjustmentEntry]) -> [LedgerEntry] {
-        sessions.map { LedgerEntry(id: $0.id, kind: .earn, minutes: $0.earnedMinutes, date: $0.endedAt) }
-            + spends.map { LedgerEntry(id: $0.id, kind: .spend, minutes: $0.minutes, date: $0.at) }
-            + adjustments.map { LedgerEntry(id: $0.id, kind: .adjust, minutes: $0.minutes, date: $0.at) }
-    }
-}
-
 enum JSONText {
     static func encode<T: Encodable>(_ value: T) -> String {
         guard let data = try? JSONEncoder().encode(value) else { return "null" }
@@ -134,5 +125,92 @@ enum JSONText {
     static func decode<T: Decodable>(_ type: T.Type, from text: String?) -> T? {
         guard let text, let data = text.data(using: .utf8) else { return nil }
         return try? JSONDecoder().decode(T.self, from: data)
+    }
+}
+
+// MARK: - Parent actions visible to the child (docs/CONTRACT.md "Transparency to the child")
+
+struct SessionOverrideInfo: Codable, Hashable, Sendable, Identifiable {
+    var sessionId: String
+    var earnedMinutes: Int  // 0 = void
+    var note: String
+    var at: Date
+    var byParent: String
+    var id: String { "override-" + sessionId }
+}
+
+struct BonusInfo: Codable, Hashable, Sendable, Identifiable {
+    var id: String          // recordName "bonus-<uuid>"
+    var multiplier: Double
+    var startsAt: Date
+    var endsAt: Date
+    var note: String
+    var at: Date
+    var byParent: String
+
+    var label: String { BonusInfo.label(multiplier) }
+
+    static func label(_ m: Double) -> String {
+        let s = m == m.rounded() ? String(Int(m)) : String(format: "%g", m)
+        return "\(s)× bonus"
+    }
+
+    func isActive(at date: Date) -> Bool { startsAt <= date && date < endsAt }
+
+    var window: BonusWindow {
+        BonusWindow(multiplier: multiplier, startsAt: Ledger.epochMs(startsAt), endsAt: Ledger.epochMs(endsAt))
+    }
+}
+
+struct RulesChangeInfo: Codable, Hashable, Sendable, Identifiable {
+    var id: String          // recordName "ruleschange-<uuid>"
+    var summary: String
+    var note: String
+    var at: Date
+    var byParent: String
+}
+
+/// How one workout ended up counting toward the balance.
+struct ResolvedSession: Hashable, Sendable, Identifiable {
+    var session: SessionInfo
+    var sessionOverride: SessionOverrideInfo?
+    /// The bonus that applied (only when not overridden).
+    var bonus: BonusInfo?
+    var earnMinutes: Int
+    /// What the workout would earn without the override (base × bonus).
+    var originalMinutes: Int
+    var id: String { session.id }
+    var isVoided: Bool { sessionOverride?.earnedMinutes == 0 }
+}
+
+/// Builds the contract ledger (§3–4) from the record types.
+enum LedgerBuilder {
+    static func earnSession(_ s: SessionInfo) -> EarnSession {
+        EarnSession(id: s.id, earnedMinutes: s.earnedMinutes,
+                    startedAt: Ledger.epochMs(s.startedAt), endedAt: Ledger.epochMs(s.endedAt))
+    }
+
+    static func resolve(sessions: [SessionInfo], overrides: [SessionOverrideInfo], bonuses: [BonusInfo]) -> [ResolvedSession] {
+        let earnOverrides = overrides.map { EarnOverride(sessionId: $0.sessionId, earnedMinutes: $0.earnedMinutes) }
+        let windows = bonuses.map(\.window)
+        return sessions.map { s in
+            let es = earnSession(s)
+            let match = overrides.first { $0.sessionId == s.id }
+            var bonus: BonusInfo?
+            if match == nil {
+                bonus = bonuses.filter { $0.window.contains(es.startedAt) }.max { $0.multiplier < $1.multiplier }
+            }
+            return ResolvedSession(session: s, sessionOverride: match, bonus: bonus,
+                                   earnMinutes: EarnResolution.earnMinutes(session: es, overrides: earnOverrides,
+                                                                           bonuses: windows),
+                                   originalMinutes: EarnResolution.earnMinutes(session: es, overrides: [],
+                                                                               bonuses: windows))
+        }
+    }
+
+    static func entries(resolved: [ResolvedSession], spends: [SpendInfo], adjustments: [AdjustmentEntry]) -> [LedgerEntry] {
+        resolved.map { LedgerEntry(id: $0.session.id, kind: .earn, minutes: $0.earnMinutes, date: $0.session.endedAt) }
+            + spends.map { LedgerEntry(id: $0.id, kind: .spend, minutes: $0.minutes, date: $0.at) }
+            + adjustments.map { LedgerEntry(id: $0.id, kind: .adjust, minutes: $0.minutes, date: $0.at) }
     }
 }

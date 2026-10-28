@@ -7,6 +7,9 @@ enum RecordType {
     static let rules = "Rules"
     static let adjustment = "Adjustment"
     static let parent = "Parent"
+    static let sessionOverride = "SessionOverride"
+    static let bonus = "Bonus"
+    static let rulesChange = "RulesChange"
     static let allowList = "AllowList"
     static let link = "Link"
     static let session = "Session"
@@ -136,6 +139,74 @@ extension ParentInfo {
         r.put("displayName", displayName)
         r.put("lookupEmail", lookupEmail)
         r.put("lookupPhone", lookupPhone)
+        return r
+    }
+}
+
+extension SessionOverrideInfo {
+    static func recordName(sessionId: String) -> String { "override-" + sessionId }
+
+    init?(record: CKRecord) {
+        guard let sessionId = record.string("sessionId"), let minutes = record.int("earnedMinutes") else { return nil }
+        self.init(sessionId: sessionId, earnedMinutes: max(0, minutes),
+                  note: record.string("note") ?? "",
+                  at: record.date("at") ?? record.creationDate ?? Date(),
+                  byParent: record.string("byParent") ?? "")
+    }
+
+    func makeRecord(zoneID: CKRecordZone.ID) -> CKRecord {
+        let r = CKRecord(recordType: RecordType.sessionOverride,
+                         recordID: .init(recordName: Self.recordName(sessionId: sessionId), zoneID: zoneID))
+        r.put("sessionId", sessionId)
+        r.put("earnedMinutes", max(0, earnedMinutes))
+        r.put("note", note)
+        r.put("at", at)
+        r.put("byParent", byParent)
+        return r
+    }
+}
+
+extension BonusInfo {
+    static func newRecordName() -> String { "bonus-" + UUID().uuidString.lowercased() }
+
+    init?(record: CKRecord) {
+        guard let multiplier = record.double("multiplier"),
+              let startsAt = record.date("startsAt"), let endsAt = record.date("endsAt") else { return nil }
+        self.init(id: record.recordID.recordName, multiplier: multiplier, startsAt: startsAt, endsAt: endsAt,
+                  note: record.string("note") ?? "",
+                  at: record.date("at") ?? record.creationDate ?? Date(),
+                  byParent: record.string("byParent") ?? "")
+    }
+
+    func makeRecord(zoneID: CKRecordZone.ID) -> CKRecord {
+        let r = CKRecord(recordType: RecordType.bonus, recordID: .init(recordName: id, zoneID: zoneID))
+        r.put("multiplier", multiplier)
+        r.put("startsAt", startsAt)
+        r.put("endsAt", endsAt)
+        r.put("note", note)
+        r.put("at", at)
+        r.put("byParent", byParent)
+        return r
+    }
+}
+
+extension RulesChangeInfo {
+    static func newRecordName() -> String { "ruleschange-" + UUID().uuidString.lowercased() }
+
+    init?(record: CKRecord) {
+        self.init(id: record.recordID.recordName,
+                  summary: record.string("summary") ?? "",
+                  note: record.string("note") ?? "",
+                  at: record.date("at") ?? record.creationDate ?? Date(),
+                  byParent: record.string("byParent") ?? "")
+    }
+
+    func makeRecord(zoneID: CKRecordZone.ID) -> CKRecord {
+        let r = CKRecord(recordType: RecordType.rulesChange, recordID: .init(recordName: id, zoneID: zoneID))
+        r.put("summary", summary)
+        r.put("note", note)
+        r.put("at", at)
+        r.put("byParent", byParent)
         return r
     }
 }

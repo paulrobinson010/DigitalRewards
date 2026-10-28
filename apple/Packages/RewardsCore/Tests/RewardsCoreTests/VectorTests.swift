@@ -61,6 +61,31 @@ final class VectorTests: XCTestCase {
         }
     }
 
+    // MARK: Earn resolution
+
+    struct EarnFile: Decodable {
+        struct Case: Decodable {
+            let name: String
+            let session: EarnSession
+            let overrides: [EarnOverride]
+            let bonuses: [BonusWindow]
+            let expectedEarnMinutes: Int
+        }
+        let cases: [Case]
+    }
+
+    func testEarnVectors() throws {
+        let file = try load("earn.json", as: EarnFile.self)
+        XCTAssertFalse(file.cases.isEmpty)
+        for c in file.cases {
+            XCTAssertEqual(EarnResolution.earnMinutes(session: c.session, overrides: c.overrides, bonuses: c.bonuses),
+                           c.expectedEarnMinutes, c.name)
+            let entries = EarnResolution.entries(sessions: [c.session], overrides: c.overrides, bonuses: c.bonuses)
+            XCTAssertEqual(entries.first?.id, c.session.id, c.name)
+            XCTAssertEqual(entries.first?.at, c.session.endedAt, c.name)
+        }
+    }
+
     // MARK: Ledger
 
     struct LedgerFile: Decodable {
@@ -140,6 +165,19 @@ final class VectorTests: XCTestCase {
         XCTAssertEqual(rules.ratio, 5)
         XCTAssertEqual(rules.debitLimit, 60)
         XCTAssertNil(rules.maxBank)
+    }
+
+    func testRulesDiffSummary() {
+        var new = Rules.defaults
+        new.ratio = 15
+        new.walkCadenceSpm = 90
+        new.maxBank = 600
+        XCTAssertEqual(RulesDiff.summary(from: .defaults, to: new),
+                       "Ratio 10 → 15; walk cadence 100 → 90; max balance none → 600 min")
+        XCTAssertEqual(RulesDiff.summary(from: .defaults, to: .defaults), "No changes")
+        var w = Rules.defaults
+        w.walkHrPct = 0.6
+        XCTAssertEqual(RulesDiff.summary(from: .defaults, to: w), "Walk heart rate 55% → 60%")
     }
 
     func testPlayWindowParsing() {
