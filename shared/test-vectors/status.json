@@ -1,0 +1,1470 @@
+{
+  "cases": [
+    {
+      "name": "credit no limits",
+      "rules": {
+        "ratio": 10,
+        "walkCadenceSpm": 100,
+        "walkHrPct": 0.55,
+        "otherHrPct": 0.65,
+        "qualifyFraction": 0.8,
+        "debitLimit": 60,
+        "maxBank": null,
+        "dailyPlayCap": null,
+        "playWindows": null
+      },
+      "timeZone": "Europe/London",
+      "now": "2026-10-28T17:00:00Z",
+      "entries": [
+        {
+          "id": "s1",
+          "kind": "earn",
+          "minutes": 100,
+          "at": 1793001600000
+        }
+      ],
+      "expected": {
+        "balance": 100,
+        "todayPlayed": 0,
+        "minutesAvailable": 160,
+        "canPlay": true,
+        "reason": null
+      }
+    },
+    {
+      "name": "zero balance uses debit",
+      "rules": {
+        "ratio": 10,
+        "walkCadenceSpm": 100,
+        "walkHrPct": 0.55,
+        "otherHrPct": 0.65,
+        "qualifyFraction": 0.8,
+        "debitLimit": 60,
+        "maxBank": null,
+        "dailyPlayCap": null,
+        "playWindows": null
+      },
+      "timeZone": "Europe/London",
+      "now": "2026-10-28T17:00:00Z",
+      "entries": [],
+      "expected": {
+        "balance": 0,
+        "todayPlayed": 0,
+        "minutesAvailable": 60,
+        "canPlay": true,
+        "reason": null
+      }
+    },
+    {
+      "name": "debit limit reached",
+      "rules": {
+        "ratio": 10,
+        "walkCadenceSpm": 100,
+        "walkHrPct": 0.55,
+        "otherHrPct": 0.65,
+        "qualifyFraction": 0.8,
+        "debitLimit": 60,
+        "maxBank": null,
+        "dailyPlayCap": null,
+        "playWindows": null
+      },
+      "timeZone": "Europe/London",
+      "now": "2026-10-28T17:00:00Z",
+      "entries": [
+        {
+          "id": "p0",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793095200000
+        },
+        {
+          "id": "p1",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793095260000
+        },
+        {
+          "id": "p2",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793095320000
+        },
+        {
+          "id": "p3",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793095380000
+        },
+        {
+          "id": "p4",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793095440000
+        },
+        {
+          "id": "p5",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793095500000
+        },
+        {
+          "id": "p6",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793095560000
+        },
+        {
+          "id": "p7",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793095620000
+        },
+        {
+          "id": "p8",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793095680000
+        },
+        {
+          "id": "p9",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793095740000
+        },
+        {
+          "id": "p10",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793095800000
+        },
+        {
+          "id": "p11",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793095860000
+        },
+        {
+          "id": "p12",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793095920000
+        },
+        {
+          "id": "p13",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793095980000
+        },
+        {
+          "id": "p14",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793096040000
+        },
+        {
+          "id": "p15",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793096100000
+        },
+        {
+          "id": "p16",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793096160000
+        },
+        {
+          "id": "p17",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793096220000
+        },
+        {
+          "id": "p18",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793096280000
+        },
+        {
+          "id": "p19",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793096340000
+        },
+        {
+          "id": "p20",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793096400000
+        },
+        {
+          "id": "p21",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793096460000
+        },
+        {
+          "id": "p22",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793096520000
+        },
+        {
+          "id": "p23",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793096580000
+        },
+        {
+          "id": "p24",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793096640000
+        },
+        {
+          "id": "p25",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793096700000
+        },
+        {
+          "id": "p26",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793096760000
+        },
+        {
+          "id": "p27",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793096820000
+        },
+        {
+          "id": "p28",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793096880000
+        },
+        {
+          "id": "p29",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793096940000
+        },
+        {
+          "id": "p30",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793097000000
+        },
+        {
+          "id": "p31",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793097060000
+        },
+        {
+          "id": "p32",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793097120000
+        },
+        {
+          "id": "p33",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793097180000
+        },
+        {
+          "id": "p34",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793097240000
+        },
+        {
+          "id": "p35",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793097300000
+        },
+        {
+          "id": "p36",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793097360000
+        },
+        {
+          "id": "p37",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793097420000
+        },
+        {
+          "id": "p38",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793097480000
+        },
+        {
+          "id": "p39",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793097540000
+        },
+        {
+          "id": "p40",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793097600000
+        },
+        {
+          "id": "p41",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793097660000
+        },
+        {
+          "id": "p42",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793097720000
+        },
+        {
+          "id": "p43",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793097780000
+        },
+        {
+          "id": "p44",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793097840000
+        },
+        {
+          "id": "p45",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793097900000
+        },
+        {
+          "id": "p46",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793097960000
+        },
+        {
+          "id": "p47",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793098020000
+        },
+        {
+          "id": "p48",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793098080000
+        },
+        {
+          "id": "p49",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793098140000
+        },
+        {
+          "id": "p50",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793098200000
+        },
+        {
+          "id": "p51",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793098260000
+        },
+        {
+          "id": "p52",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793098320000
+        },
+        {
+          "id": "p53",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793098380000
+        },
+        {
+          "id": "p54",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793098440000
+        },
+        {
+          "id": "p55",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793098500000
+        },
+        {
+          "id": "p56",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793098560000
+        },
+        {
+          "id": "p57",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793098620000
+        },
+        {
+          "id": "p58",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793098680000
+        },
+        {
+          "id": "p59",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793098740000
+        }
+      ],
+      "expected": {
+        "balance": -60,
+        "todayPlayed": 0,
+        "minutesAvailable": 0,
+        "canPlay": false,
+        "reason": "debitLimitReached"
+      }
+    },
+    {
+      "name": "debit zero blocks at zero",
+      "rules": {
+        "ratio": 10,
+        "walkCadenceSpm": 100,
+        "walkHrPct": 0.55,
+        "otherHrPct": 0.65,
+        "qualifyFraction": 0.8,
+        "debitLimit": 0,
+        "maxBank": null,
+        "dailyPlayCap": null,
+        "playWindows": null
+      },
+      "timeZone": "Europe/London",
+      "now": "2026-10-28T17:00:00Z",
+      "entries": [],
+      "expected": {
+        "balance": 0,
+        "todayPlayed": 0,
+        "minutesAvailable": 0,
+        "canPlay": false,
+        "reason": "debitLimitReached"
+      }
+    },
+    {
+      "name": "inside weekday window",
+      "rules": {
+        "ratio": 10,
+        "walkCadenceSpm": 100,
+        "walkHrPct": 0.55,
+        "otherHrPct": 0.65,
+        "qualifyFraction": 0.8,
+        "debitLimit": 60,
+        "maxBank": null,
+        "dailyPlayCap": null,
+        "playWindows": [
+          {
+            "days": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "start": "16:00",
+            "end": "20:00"
+          }
+        ]
+      },
+      "timeZone": "Europe/London",
+      "now": "2026-10-28T17:00:00Z",
+      "entries": [
+        {
+          "id": "s1",
+          "kind": "earn",
+          "minutes": 100,
+          "at": 1793001600000
+        }
+      ],
+      "expected": {
+        "balance": 100,
+        "todayPlayed": 0,
+        "minutesAvailable": 160,
+        "canPlay": true,
+        "reason": null
+      }
+    },
+    {
+      "name": "window end caps minutes",
+      "rules": {
+        "ratio": 10,
+        "walkCadenceSpm": 100,
+        "walkHrPct": 0.55,
+        "otherHrPct": 0.65,
+        "qualifyFraction": 0.8,
+        "debitLimit": 60,
+        "maxBank": null,
+        "dailyPlayCap": null,
+        "playWindows": [
+          {
+            "days": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "start": "16:00",
+            "end": "20:00"
+          }
+        ]
+      },
+      "timeZone": "Europe/London",
+      "now": "2026-10-28T19:45:30Z",
+      "entries": [
+        {
+          "id": "s1",
+          "kind": "earn",
+          "minutes": 100,
+          "at": 1793001600000
+        }
+      ],
+      "expected": {
+        "balance": 100,
+        "todayPlayed": 0,
+        "minutesAvailable": 15,
+        "canPlay": true,
+        "reason": null
+      }
+    },
+    {
+      "name": "before window",
+      "rules": {
+        "ratio": 10,
+        "walkCadenceSpm": 100,
+        "walkHrPct": 0.55,
+        "otherHrPct": 0.65,
+        "qualifyFraction": 0.8,
+        "debitLimit": 60,
+        "maxBank": null,
+        "dailyPlayCap": null,
+        "playWindows": [
+          {
+            "days": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "start": "16:00",
+            "end": "20:00"
+          }
+        ]
+      },
+      "timeZone": "Europe/London",
+      "now": "2026-10-28T15:59:00Z",
+      "entries": [
+        {
+          "id": "s1",
+          "kind": "earn",
+          "minutes": 100,
+          "at": 1793001600000
+        }
+      ],
+      "expected": {
+        "balance": 100,
+        "todayPlayed": 0,
+        "minutesAvailable": 0,
+        "canPlay": false,
+        "reason": "outsidePlayWindow"
+      }
+    },
+    {
+      "name": "at window end",
+      "rules": {
+        "ratio": 10,
+        "walkCadenceSpm": 100,
+        "walkHrPct": 0.55,
+        "otherHrPct": 0.65,
+        "qualifyFraction": 0.8,
+        "debitLimit": 60,
+        "maxBank": null,
+        "dailyPlayCap": null,
+        "playWindows": [
+          {
+            "days": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "start": "16:00",
+            "end": "20:00"
+          }
+        ]
+      },
+      "timeZone": "Europe/London",
+      "now": "2026-10-28T20:00:00Z",
+      "entries": [
+        {
+          "id": "s1",
+          "kind": "earn",
+          "minutes": 100,
+          "at": 1793001600000
+        }
+      ],
+      "expected": {
+        "balance": 100,
+        "todayPlayed": 0,
+        "minutesAvailable": 0,
+        "canPlay": false,
+        "reason": "outsidePlayWindow"
+      }
+    },
+    {
+      "name": "weekend window on weekday",
+      "rules": {
+        "ratio": 10,
+        "walkCadenceSpm": 100,
+        "walkHrPct": 0.55,
+        "otherHrPct": 0.65,
+        "qualifyFraction": 0.8,
+        "debitLimit": 60,
+        "maxBank": null,
+        "dailyPlayCap": null,
+        "playWindows": [
+          {
+            "days": [
+              6,
+              7
+            ],
+            "start": "09:00",
+            "end": "21:00"
+          }
+        ]
+      },
+      "timeZone": "Europe/London",
+      "now": "2026-10-28T12:00:00Z",
+      "entries": [
+        {
+          "id": "s1",
+          "kind": "earn",
+          "minutes": 100,
+          "at": 1793001600000
+        }
+      ],
+      "expected": {
+        "balance": 100,
+        "todayPlayed": 0,
+        "minutesAvailable": 0,
+        "canPlay": false,
+        "reason": "outsidePlayWindow"
+      }
+    },
+    {
+      "name": "multiple windows max",
+      "rules": {
+        "ratio": 10,
+        "walkCadenceSpm": 100,
+        "walkHrPct": 0.55,
+        "otherHrPct": 0.65,
+        "qualifyFraction": 0.8,
+        "debitLimit": 60,
+        "maxBank": null,
+        "dailyPlayCap": null,
+        "playWindows": [
+          {
+            "days": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "start": "16:00",
+            "end": "20:00"
+          },
+          {
+            "days": [
+              3
+            ],
+            "start": "18:00",
+            "end": "22:00"
+          }
+        ]
+      },
+      "timeZone": "Europe/London",
+      "now": "2026-10-28T19:00:00Z",
+      "entries": [
+        {
+          "id": "s1",
+          "kind": "earn",
+          "minutes": 500,
+          "at": 1793001600000
+        }
+      ],
+      "expected": {
+        "balance": 500,
+        "todayPlayed": 0,
+        "minutesAvailable": 180,
+        "canPlay": true,
+        "reason": null
+      }
+    },
+    {
+      "name": "timezone shifts weekday",
+      "rules": {
+        "ratio": 10,
+        "walkCadenceSpm": 100,
+        "walkHrPct": 0.55,
+        "otherHrPct": 0.65,
+        "qualifyFraction": 0.8,
+        "debitLimit": 60,
+        "maxBank": null,
+        "dailyPlayCap": null,
+        "playWindows": [
+          {
+            "days": [
+              6,
+              7
+            ],
+            "start": "09:00",
+            "end": "21:00"
+          }
+        ]
+      },
+      "timeZone": "Pacific/Auckland",
+      "now": "2026-10-30T22:00:00Z",
+      "entries": [
+        {
+          "id": "s1",
+          "kind": "earn",
+          "minutes": 100,
+          "at": 1793001600000
+        }
+      ],
+      "expected": {
+        "balance": 100,
+        "todayPlayed": 0,
+        "minutesAvailable": 160,
+        "canPlay": true,
+        "reason": null
+      }
+    },
+    {
+      "name": "daily cap partly used",
+      "rules": {
+        "ratio": 10,
+        "walkCadenceSpm": 100,
+        "walkHrPct": 0.55,
+        "otherHrPct": 0.65,
+        "qualifyFraction": 0.8,
+        "debitLimit": 60,
+        "maxBank": null,
+        "dailyPlayCap": 30,
+        "playWindows": null
+      },
+      "timeZone": "Europe/London",
+      "now": "2026-10-28T17:00:00Z",
+      "entries": [
+        {
+          "id": "s1",
+          "kind": "earn",
+          "minutes": 100,
+          "at": 1793001600000
+        },
+        {
+          "id": "p0",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793178000000
+        },
+        {
+          "id": "p1",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793178060000
+        },
+        {
+          "id": "p2",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793178120000
+        },
+        {
+          "id": "p3",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793178180000
+        },
+        {
+          "id": "p4",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793178240000
+        },
+        {
+          "id": "p5",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793178300000
+        },
+        {
+          "id": "p6",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793178360000
+        },
+        {
+          "id": "p7",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793178420000
+        },
+        {
+          "id": "p8",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793178480000
+        },
+        {
+          "id": "p9",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793178540000
+        },
+        {
+          "id": "p10",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793178600000
+        },
+        {
+          "id": "p11",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793178660000
+        },
+        {
+          "id": "p12",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793178720000
+        },
+        {
+          "id": "p13",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793178780000
+        },
+        {
+          "id": "p14",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793178840000
+        },
+        {
+          "id": "p15",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793178900000
+        },
+        {
+          "id": "p16",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793178960000
+        },
+        {
+          "id": "p17",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793179020000
+        },
+        {
+          "id": "p18",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793179080000
+        },
+        {
+          "id": "p19",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793179140000
+        }
+      ],
+      "expected": {
+        "balance": 80,
+        "todayPlayed": 20,
+        "minutesAvailable": 10,
+        "canPlay": true,
+        "reason": null
+      }
+    },
+    {
+      "name": "daily cap reached",
+      "rules": {
+        "ratio": 10,
+        "walkCadenceSpm": 100,
+        "walkHrPct": 0.55,
+        "otherHrPct": 0.65,
+        "qualifyFraction": 0.8,
+        "debitLimit": 60,
+        "maxBank": null,
+        "dailyPlayCap": 10,
+        "playWindows": null
+      },
+      "timeZone": "Europe/London",
+      "now": "2026-10-28T17:00:00Z",
+      "entries": [
+        {
+          "id": "s1",
+          "kind": "earn",
+          "minutes": 100,
+          "at": 1793001600000
+        },
+        {
+          "id": "p0",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793178000000
+        },
+        {
+          "id": "p1",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793178060000
+        },
+        {
+          "id": "p2",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793178120000
+        },
+        {
+          "id": "p3",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793178180000
+        },
+        {
+          "id": "p4",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793178240000
+        },
+        {
+          "id": "p5",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793178300000
+        },
+        {
+          "id": "p6",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793178360000
+        },
+        {
+          "id": "p7",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793178420000
+        },
+        {
+          "id": "p8",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793178480000
+        },
+        {
+          "id": "p9",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793178540000
+        }
+      ],
+      "expected": {
+        "balance": 90,
+        "todayPlayed": 10,
+        "minutesAvailable": 0,
+        "canPlay": false,
+        "reason": "dailyCapReached"
+      }
+    },
+    {
+      "name": "yesterday spend not counted in cap",
+      "rules": {
+        "ratio": 10,
+        "walkCadenceSpm": 100,
+        "walkHrPct": 0.55,
+        "otherHrPct": 0.65,
+        "qualifyFraction": 0.8,
+        "debitLimit": 60,
+        "maxBank": null,
+        "dailyPlayCap": 10,
+        "playWindows": null
+      },
+      "timeZone": "Europe/London",
+      "now": "2026-10-28T17:00:00Z",
+      "entries": [
+        {
+          "id": "s1",
+          "kind": "earn",
+          "minutes": 100,
+          "at": 1793001600000
+        },
+        {
+          "id": "p0",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793091600000
+        },
+        {
+          "id": "p1",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793091660000
+        },
+        {
+          "id": "p2",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793091720000
+        },
+        {
+          "id": "p3",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793091780000
+        },
+        {
+          "id": "p4",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793091840000
+        },
+        {
+          "id": "p5",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793091900000
+        },
+        {
+          "id": "p6",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793091960000
+        },
+        {
+          "id": "p7",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793092020000
+        },
+        {
+          "id": "p8",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793092080000
+        },
+        {
+          "id": "p9",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793092140000
+        }
+      ],
+      "expected": {
+        "balance": 90,
+        "todayPlayed": 0,
+        "minutesAvailable": 10,
+        "canPlay": true,
+        "reason": null
+      }
+    },
+    {
+      "name": "local midnight boundary",
+      "rules": {
+        "ratio": 10,
+        "walkCadenceSpm": 100,
+        "walkHrPct": 0.55,
+        "otherHrPct": 0.65,
+        "qualifyFraction": 0.8,
+        "debitLimit": 60,
+        "maxBank": null,
+        "dailyPlayCap": 10,
+        "playWindows": null
+      },
+      "timeZone": "America/New_York",
+      "now": "2026-10-28T03:30:00Z",
+      "entries": [
+        {
+          "id": "s1",
+          "kind": "earn",
+          "minutes": 100,
+          "at": 1793001600000
+        },
+        {
+          "id": "p0",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793131200000
+        },
+        {
+          "id": "p1",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793131260000
+        },
+        {
+          "id": "p2",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793131320000
+        },
+        {
+          "id": "p3",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793131380000
+        },
+        {
+          "id": "p4",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793131440000
+        },
+        {
+          "id": "p5",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793131500000
+        },
+        {
+          "id": "p6",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793131560000
+        },
+        {
+          "id": "p7",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793131620000
+        },
+        {
+          "id": "p8",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793131680000
+        },
+        {
+          "id": "p9",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793131740000
+        }
+      ],
+      "expected": {
+        "balance": 90,
+        "todayPlayed": 10,
+        "minutesAvailable": 0,
+        "canPlay": false,
+        "reason": "dailyCapReached"
+      }
+    },
+    {
+      "name": "window wins reason over cap",
+      "rules": {
+        "ratio": 10,
+        "walkCadenceSpm": 100,
+        "walkHrPct": 0.55,
+        "otherHrPct": 0.65,
+        "qualifyFraction": 0.8,
+        "debitLimit": 60,
+        "maxBank": null,
+        "dailyPlayCap": 10,
+        "playWindows": [
+          {
+            "days": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "start": "16:00",
+            "end": "20:00"
+          }
+        ]
+      },
+      "timeZone": "Europe/London",
+      "now": "2026-10-28T12:00:00Z",
+      "entries": [
+        {
+          "id": "s1",
+          "kind": "earn",
+          "minutes": 100,
+          "at": 1793001600000
+        },
+        {
+          "id": "p0",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793178000000
+        },
+        {
+          "id": "p1",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793178060000
+        },
+        {
+          "id": "p2",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793178120000
+        },
+        {
+          "id": "p3",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793178180000
+        },
+        {
+          "id": "p4",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793178240000
+        },
+        {
+          "id": "p5",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793178300000
+        },
+        {
+          "id": "p6",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793178360000
+        },
+        {
+          "id": "p7",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793178420000
+        },
+        {
+          "id": "p8",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793178480000
+        },
+        {
+          "id": "p9",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793178540000
+        }
+      ],
+      "expected": {
+        "balance": 90,
+        "todayPlayed": 10,
+        "minutesAvailable": 0,
+        "canPlay": false,
+        "reason": "outsidePlayWindow"
+      }
+    },
+    {
+      "name": "cap wins reason over debit",
+      "rules": {
+        "ratio": 10,
+        "walkCadenceSpm": 100,
+        "walkHrPct": 0.55,
+        "otherHrPct": 0.65,
+        "qualifyFraction": 0.8,
+        "debitLimit": 0,
+        "maxBank": null,
+        "dailyPlayCap": 10,
+        "playWindows": null
+      },
+      "timeZone": "Europe/London",
+      "now": "2026-10-28T17:00:00Z",
+      "entries": [
+        {
+          "id": "p0",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793178000000
+        },
+        {
+          "id": "p1",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793178060000
+        },
+        {
+          "id": "p2",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793178120000
+        },
+        {
+          "id": "p3",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793178180000
+        },
+        {
+          "id": "p4",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793178240000
+        },
+        {
+          "id": "p5",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793178300000
+        },
+        {
+          "id": "p6",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793178360000
+        },
+        {
+          "id": "p7",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793178420000
+        },
+        {
+          "id": "p8",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793178480000
+        },
+        {
+          "id": "p9",
+          "kind": "spend",
+          "minutes": 1,
+          "at": 1793178540000
+        }
+      ],
+      "expected": {
+        "balance": -10,
+        "todayPlayed": 10,
+        "minutesAvailable": 0,
+        "canPlay": false,
+        "reason": "dailyCapReached"
+      }
+    },
+    {
+      "name": "window end 24:00",
+      "rules": {
+        "ratio": 10,
+        "walkCadenceSpm": 100,
+        "walkHrPct": 0.55,
+        "otherHrPct": 0.65,
+        "qualifyFraction": 0.8,
+        "debitLimit": 60,
+        "maxBank": null,
+        "dailyPlayCap": null,
+        "playWindows": [
+          {
+            "days": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "start": "20:00",
+            "end": "24:00"
+          }
+        ]
+      },
+      "timeZone": "Europe/London",
+      "now": "2026-10-28T23:50:00Z",
+      "entries": [
+        {
+          "id": "s1",
+          "kind": "earn",
+          "minutes": 100,
+          "at": 1793001600000
+        }
+      ],
+      "expected": {
+        "balance": 100,
+        "todayPlayed": 0,
+        "minutesAvailable": 10,
+        "canPlay": true,
+        "reason": null
+      }
+    },
+    {
+      "name": "balance smaller than window",
+      "rules": {
+        "ratio": 10,
+        "walkCadenceSpm": 100,
+        "walkHrPct": 0.55,
+        "otherHrPct": 0.65,
+        "qualifyFraction": 0.8,
+        "debitLimit": 0,
+        "maxBank": null,
+        "dailyPlayCap": null,
+        "playWindows": [
+          {
+            "days": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "start": "16:00",
+            "end": "20:00"
+          }
+        ]
+      },
+      "timeZone": "Europe/London",
+      "now": "2026-10-28T17:00:00Z",
+      "entries": [
+        {
+          "id": "s1",
+          "kind": "earn",
+          "minutes": 20,
+          "at": 1793001600000
+        }
+      ],
+      "expected": {
+        "balance": 20,
+        "todayPlayed": 0,
+        "minutesAvailable": 20,
+        "canPlay": true,
+        "reason": null
+      }
+    }
+  ]
+}

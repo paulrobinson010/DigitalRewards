@@ -1,0 +1,464 @@
+{
+  "samples": [
+    {
+      "name": "walk clearly passes",
+      "activityType": "walk",
+      "rules": {
+        "ratio": 10,
+        "walkCadenceSpm": 100,
+        "walkHrPct": 0.55,
+        "otherHrPct": 0.65,
+        "qualifyFraction": 0.8,
+        "debitLimit": 60,
+        "maxBank": null,
+        "dailyPlayCap": null,
+        "playWindows": null
+      },
+      "birthYear": 2014,
+      "atYear": 2026,
+      "hr": 160,
+      "cadence": 130.0,
+      "expectedThresholdBpm": 114,
+      "expectedPass": true
+    },
+    {
+      "name": "walk hr one below",
+      "activityType": "walk",
+      "rules": {
+        "ratio": 10,
+        "walkCadenceSpm": 100,
+        "walkHrPct": 0.55,
+        "otherHrPct": 0.65,
+        "qualifyFraction": 0.8,
+        "debitLimit": 60,
+        "maxBank": null,
+        "dailyPlayCap": null,
+        "playWindows": null
+      },
+      "birthYear": 2014,
+      "atYear": 2026,
+      "hr": 113,
+      "cadence": 120.0,
+      "expectedThresholdBpm": 114,
+      "expectedPass": false
+    },
+    {
+      "name": "walk hr exactly threshold",
+      "activityType": "walk",
+      "rules": {
+        "ratio": 10,
+        "walkCadenceSpm": 100,
+        "walkHrPct": 0.55,
+        "otherHrPct": 0.65,
+        "qualifyFraction": 0.8,
+        "debitLimit": 60,
+        "maxBank": null,
+        "dailyPlayCap": null,
+        "playWindows": null
+      },
+      "birthYear": 2014,
+      "atYear": 2026,
+      "hr": 114,
+      "cadence": 100.0,
+      "expectedThresholdBpm": 114,
+      "expectedPass": true
+    },
+    {
+      "name": "walk cadence just below",
+      "activityType": "walk",
+      "rules": {
+        "ratio": 10,
+        "walkCadenceSpm": 100,
+        "walkHrPct": 0.55,
+        "otherHrPct": 0.65,
+        "qualifyFraction": 0.8,
+        "debitLimit": 60,
+        "maxBank": null,
+        "dailyPlayCap": null,
+        "playWindows": null
+      },
+      "birthYear": 2014,
+      "atYear": 2026,
+      "hr": 150,
+      "cadence": 99.9,
+      "expectedThresholdBpm": 114,
+      "expectedPass": false
+    },
+    {
+      "name": "walk missing cadence",
+      "activityType": "walk",
+      "rules": {
+        "ratio": 10,
+        "walkCadenceSpm": 100,
+        "walkHrPct": 0.55,
+        "otherHrPct": 0.65,
+        "qualifyFraction": 0.8,
+        "debitLimit": 60,
+        "maxBank": null,
+        "dailyPlayCap": null,
+        "playWindows": null
+      },
+      "birthYear": 2014,
+      "atYear": 2026,
+      "hr": 150,
+      "cadence": null,
+      "expectedThresholdBpm": 114,
+      "expectedPass": false
+    },
+    {
+      "name": "walk missing hr",
+      "activityType": "walk",
+      "rules": {
+        "ratio": 10,
+        "walkCadenceSpm": 100,
+        "walkHrPct": 0.55,
+        "otherHrPct": 0.65,
+        "qualifyFraction": 0.8,
+        "debitLimit": 60,
+        "maxBank": null,
+        "dailyPlayCap": null,
+        "playWindows": null
+      },
+      "birthYear": 2014,
+      "atYear": 2026,
+      "hr": null,
+      "cadence": 130.0,
+      "expectedThresholdBpm": 114,
+      "expectedPass": false
+    },
+    {
+      "name": "cycle ignores cadence",
+      "activityType": "cycle",
+      "rules": {
+        "ratio": 10,
+        "walkCadenceSpm": 100,
+        "walkHrPct": 0.55,
+        "otherHrPct": 0.65,
+        "qualifyFraction": 0.8,
+        "debitLimit": 60,
+        "maxBank": null,
+        "dailyPlayCap": null,
+        "playWindows": null
+      },
+      "birthYear": 2014,
+      "atYear": 2026,
+      "hr": 135,
+      "cadence": null,
+      "expectedThresholdBpm": 135,
+      "expectedPass": true
+    },
+    {
+      "name": "cycle hr below",
+      "activityType": "cycle",
+      "rules": {
+        "ratio": 10,
+        "walkCadenceSpm": 100,
+        "walkHrPct": 0.55,
+        "otherHrPct": 0.65,
+        "qualifyFraction": 0.8,
+        "debitLimit": 60,
+        "maxBank": null,
+        "dailyPlayCap": null,
+        "playWindows": null
+      },
+      "birthYear": 2014,
+      "atYear": 2026,
+      "hr": 134,
+      "cadence": 200.0,
+      "expectedThresholdBpm": 135,
+      "expectedPass": false
+    },
+    {
+      "name": "other hr ok",
+      "activityType": "other",
+      "rules": {
+        "ratio": 10,
+        "walkCadenceSpm": 100,
+        "walkHrPct": 0.55,
+        "otherHrPct": 0.65,
+        "qualifyFraction": 0.8,
+        "debitLimit": 60,
+        "maxBank": null,
+        "dailyPlayCap": null,
+        "playWindows": null
+      },
+      "birthYear": 2014,
+      "atYear": 2026,
+      "hr": 140,
+      "cadence": null,
+      "expectedThresholdBpm": 135,
+      "expectedPass": true
+    },
+    {
+      "name": "other missing hr",
+      "activityType": "other",
+      "rules": {
+        "ratio": 10,
+        "walkCadenceSpm": 100,
+        "walkHrPct": 0.55,
+        "otherHrPct": 0.65,
+        "qualifyFraction": 0.8,
+        "debitLimit": 60,
+        "maxBank": null,
+        "dailyPlayCap": null,
+        "playWindows": null
+      },
+      "birthYear": 2014,
+      "atYear": 2026,
+      "hr": null,
+      "cadence": null,
+      "expectedThresholdBpm": 135,
+      "expectedPass": false
+    },
+    {
+      "name": "midpoint rounds away from zero",
+      "activityType": "other",
+      "rules": {
+        "ratio": 10,
+        "walkCadenceSpm": 100,
+        "walkHrPct": 0.55,
+        "otherHrPct": 0.5,
+        "qualifyFraction": 0.8,
+        "debitLimit": 60,
+        "maxBank": null,
+        "dailyPlayCap": null,
+        "playWindows": null
+      },
+      "birthYear": 2011,
+      "atYear": 2026,
+      "hr": 103,
+      "cadence": null,
+      "expectedThresholdBpm": 103,
+      "expectedPass": true
+    },
+    {
+      "name": "midpoint below",
+      "activityType": "other",
+      "rules": {
+        "ratio": 10,
+        "walkCadenceSpm": 100,
+        "walkHrPct": 0.55,
+        "otherHrPct": 0.5,
+        "qualifyFraction": 0.8,
+        "debitLimit": 60,
+        "maxBank": null,
+        "dailyPlayCap": null,
+        "playWindows": null
+      },
+      "birthYear": 2011,
+      "atYear": 2026,
+      "hr": 102,
+      "cadence": null,
+      "expectedThresholdBpm": 103,
+      "expectedPass": false
+    },
+    {
+      "name": "custom cadence",
+      "activityType": "walk",
+      "rules": {
+        "ratio": 10,
+        "walkCadenceSpm": 120,
+        "walkHrPct": 0.5,
+        "otherHrPct": 0.65,
+        "qualifyFraction": 0.8,
+        "debitLimit": 60,
+        "maxBank": null,
+        "dailyPlayCap": null,
+        "playWindows": null
+      },
+      "birthYear": 2016,
+      "atYear": 2026,
+      "hr": 105,
+      "cadence": 119.0,
+      "expectedThresholdBpm": 105,
+      "expectedPass": false
+    }
+  ],
+  "sessions": [
+    {
+      "name": "all qualify",
+      "rules": {
+        "ratio": 10,
+        "walkCadenceSpm": 100,
+        "walkHrPct": 0.55,
+        "otherHrPct": 0.65,
+        "qualifyFraction": 0.8,
+        "debitLimit": 60,
+        "maxBank": null,
+        "dailyPlayCap": null,
+        "playWindows": null
+      },
+      "minutes": [
+        {
+          "p": 12,
+          "t": 12
+        },
+        {
+          "p": 12,
+          "t": 12
+        },
+        {
+          "p": 11,
+          "t": 12
+        }
+      ],
+      "expectedQualifyingMinutes": 3,
+      "expectedEarnedMinutes": 30
+    },
+    {
+      "name": "80 percent boundary",
+      "rules": {
+        "ratio": 10,
+        "walkCadenceSpm": 100,
+        "walkHrPct": 0.55,
+        "otherHrPct": 0.65,
+        "qualifyFraction": 0.8,
+        "debitLimit": 60,
+        "maxBank": null,
+        "dailyPlayCap": null,
+        "playWindows": null
+      },
+      "minutes": [
+        {
+          "p": 10,
+          "t": 12
+        },
+        {
+          "p": 9,
+          "t": 12
+        },
+        {
+          "p": 8,
+          "t": 10
+        },
+        {
+          "p": 7,
+          "t": 10
+        }
+      ],
+      "expectedQualifyingMinutes": 2,
+      "expectedEarnedMinutes": 20
+    },
+    {
+      "name": "empty minute never qualifies",
+      "rules": {
+        "ratio": 10,
+        "walkCadenceSpm": 100,
+        "walkHrPct": 0.55,
+        "otherHrPct": 0.65,
+        "qualifyFraction": 0.8,
+        "debitLimit": 60,
+        "maxBank": null,
+        "dailyPlayCap": null,
+        "playWindows": null
+      },
+      "minutes": [
+        {
+          "p": 0,
+          "t": 0
+        },
+        {
+          "p": 12,
+          "t": 12
+        }
+      ],
+      "expectedQualifyingMinutes": 1,
+      "expectedEarnedMinutes": 10
+    },
+    {
+      "name": "ratio 5",
+      "rules": {
+        "ratio": 5,
+        "walkCadenceSpm": 100,
+        "walkHrPct": 0.55,
+        "otherHrPct": 0.65,
+        "qualifyFraction": 0.8,
+        "debitLimit": 60,
+        "maxBank": null,
+        "dailyPlayCap": null,
+        "playWindows": null
+      },
+      "minutes": [
+        {
+          "p": 12,
+          "t": 12
+        },
+        {
+          "p": 12,
+          "t": 12
+        }
+      ],
+      "expectedQualifyingMinutes": 2,
+      "expectedEarnedMinutes": 10
+    },
+    {
+      "name": "no minutes",
+      "rules": {
+        "ratio": 10,
+        "walkCadenceSpm": 100,
+        "walkHrPct": 0.55,
+        "otherHrPct": 0.65,
+        "qualifyFraction": 0.8,
+        "debitLimit": 60,
+        "maxBank": null,
+        "dailyPlayCap": null,
+        "playWindows": null
+      },
+      "minutes": [],
+      "expectedQualifyingMinutes": 0,
+      "expectedEarnedMinutes": 0
+    },
+    {
+      "name": "fraction 1.0 needs all",
+      "rules": {
+        "ratio": 10,
+        "walkCadenceSpm": 100,
+        "walkHrPct": 0.55,
+        "otherHrPct": 0.65,
+        "qualifyFraction": 1.0,
+        "debitLimit": 60,
+        "maxBank": null,
+        "dailyPlayCap": null,
+        "playWindows": null
+      },
+      "minutes": [
+        {
+          "p": 12,
+          "t": 12
+        },
+        {
+          "p": 11,
+          "t": 12
+        }
+      ],
+      "expectedQualifyingMinutes": 1,
+      "expectedEarnedMinutes": 10
+    },
+    {
+      "name": "fraction 0.5",
+      "rules": {
+        "ratio": 10,
+        "walkCadenceSpm": 100,
+        "walkHrPct": 0.55,
+        "otherHrPct": 0.65,
+        "qualifyFraction": 0.5,
+        "debitLimit": 60,
+        "maxBank": null,
+        "dailyPlayCap": null,
+        "playWindows": null
+      },
+      "minutes": [
+        {
+          "p": 6,
+          "t": 12
+        },
+        {
+          "p": 5,
+          "t": 12
+        }
+      ],
+      "expectedQualifyingMinutes": 1,
+      "expectedEarnedMinutes": 10
+    }
+  ]
+}
