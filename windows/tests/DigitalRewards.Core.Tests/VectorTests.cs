@@ -101,3 +101,23 @@ public class CoreUnitTests
         Assert.False(TimeZones.TryFind("Not/AZone", out _));
     }
 }
+
+public class EarnVectorTests
+{
+    public static TheoryData<string> Cases => TestVectors.Names("earn.json", "cases");
+
+    [Theory]
+    [MemberData(nameof(Cases))]
+    public void Resolve(string name)
+    {
+        var c = TestVectors.Case("earn.json", "cases", name);
+        var session = TestVectors.As<SessionSummary>(c.GetProperty("session"));
+        var overrides = TestVectors.As<List<SessionOverride>>(c.GetProperty("overrides"));
+        var bonuses = TestVectors.As<List<Bonus>>(c.GetProperty("bonuses"));
+        var expected = c.GetProperty("expectedEarnMinutes").GetInt32();
+
+        Assert.Equal(expected, EarnResolution.EarnMinutes(session, overrides, bonuses));
+        var entry = Assert.Single(EarnResolution.ToEntries([session], overrides, bonuses));
+        Assert.Equal(new LedgerEntry(session.Id, EntryKind.Earn, expected, session.EndedAt), entry);
+    }
+}
