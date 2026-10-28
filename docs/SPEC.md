@@ -1,205 +1,203 @@
-# DigitalRewards — Product & Technical Spec (v0.2, serverless / iCloud)
+# DigitalRewards — Product & Technical Spec (v0.3)
 
-Kids earn gaming time by doing physical activity. One qualifying minute of
-activity buys **10 minutes** of gaming (ratio set by a parent). Working harder
-does not earn more; the only test is whether each minute was at or above the
-bar.
+Kids earn gaming time by doing physical activity. Each qualifying minute of
+activity buys gaming minutes at a per-child ratio (default **1:10**). Working
+harder does not earn more; the only test is whether each minute was at or
+above the bar.
 
 **No servers.** All data lives in the family's own iCloud accounts via
-**CloudKit**. There is nothing to host, run or pay for beyond the Apple Developer
-Program.
+**CloudKit**.
+
+**In scope for v1:** Apple Watch app, iPhone/iPad app, Windows app.
+**Out of scope:** Android, Mac, web.
 
 ## 1. Components
 
 | # | Component | Platform | Purpose |
 |---|-----------|----------|---------|
-| 1 | **Watch logger** | watchOS | Press Play, track the workout, count qualifying minutes. Logging only. |
-| 2 | **Kid app** | iOS / iPadOS | Show balance (credit **or** debit), history, today's earned/spent. Also does the iOS game blocking. |
-| 3 | **Parent app** | iOS / iPadOS (+ Mac via Catalyst) | Set the rules, invite a child, view the ledger, make manual adjustments, see device health. Replaces the web portal. |
-| 4 | **PC enforcer** | Windows | Count game time, debit the balance, close and block games at the limit. Talks to CloudKit over its REST API. |
-| 5 | **Shared core** | Swift package + C# library | One ledger/rules engine, ported, with shared test vectors. |
-| 6 | Android enforcer | Android | Phase 3, CloudKit REST like the PC. |
+| 1 | **Watch logger** | watchOS | Start/stop a workout, count qualifying minutes. Logging only. |
+| 2 | **DigitalRewards app** | iOS / iPadOS | One app, two modes chosen at first launch: **Child** (balance, history, iOS blocking) and **Parent** (children, rules, ledger, alerts). |
+| 3 | **PC enforcer** | Windows | Count play time, debit the balance, close non-allowed apps at the limit. CloudKit over its REST API. |
+| 4 | **Shared core** | Swift package + C# library | Ledger fold + rules engine, ported, with shared JSON test vectors. |
 
-The kid app and parent app can be **one app with two modes**, chosen at first launch.
+## 2. Decisions (v1)
 
-Priority: **Shared core + CloudKit schema → Watch logger + kid app + parent app → PC enforcer → iOS enforcer → Android.**
+### Setup
+- Each child has **their own iPhone** with a **child Apple ID** in the parent's
+  Family Sharing group. The watch is **paired to the child's iPhone**.
+- **Several children** are supported from day one, each with their own rules and balance.
+- Each child has **their own standard (non-admin) Windows account**. A shared
+  PC is fine: one Windows account maps to one child.
 
-## 2. iCloud / CloudKit design
+### Earning
+| Activity | Minute qualifies when (≥ 80% of ~5 s samples pass) |
+|----------|----------------------------------------------------|
+| Walking / running (outdoor or treadmill) | cadence **≥ 100 steps/min** AND HR **≥ 55%** of estimated max |
+| Cycling, and any other workout (sports, swimming, dance, …) | HR **≥ 65%** of estimated max |
 
-### Accounts
-- The **parent** uses their own Apple ID.
-- The **child** uses their own Apple ID: a child account in the parent's Family
-  Sharing group. Family Sharing is also required for Screen Time enforcement on iOS.
-- The child's iPhone, iPad and Watch are all signed in as the child.
-- The child's Windows PC signs in to iCloud **as the child** inside the enforcer,
-  via Apple's web sign-in.
+- Estimated max HR = 220 − age, taken from the child's birth year in the parent settings. The parent can
+  override both percentages and the cadence per child.
+- **No minimum session length**: every qualifying minute counts.
+- **No daily earn limit.**
+- Ratio: **per child, default 10**.
 
-### Zones and sharing (who owns what)
+### Balance
+- **Debit allowed** down to **−60 gaming minutes** by default, set per child. **No
+  repayment deadline**: play is blocked at the limit until earnings bring the balance back above it.
+- **Max bank**: optional per child, **default none**.
+- **No expiry.**
+- The balance is **one pool per child**, shared across PC, iPhone and iPad.
 
-CloudKit has no server-side logic, so trust comes from **ownership**: each side
-can only write its own zone, and the other side gets a **read-only** share.
+### Schedules (per child, both optional)
+- **Play windows**: e.g. weekdays 16:00–20:00. Outside them play is blocked even with credit.
+- **Daily play cap**: e.g. at most 120 min/day even with credit.
+
+`canPlay = balance > −debitLimit AND inPlayWindow AND todayPlayed < dailyPlayCap`
+
+### PC
+- Time is counted **only while a non-allowed app is in the foreground**.
+- Strict mode: **every app costs time except an allowed list**. Allowed by default:
+  **Windows system apps only** (Explorer, Settings, Task Manager, lock screen, etc.).
+  The parent adds anything else (e.g. Word, a browser).
+- At the limit: toasts at **10, 5 and 1 minute(s)** left, then **non-allowed apps are closed**
+  and blocked from relaunching. Allowed apps keep working.
+- Offline: uses the last known balance and keeps counting locally, syncing later.
+  **After 24 h without a sync, non-allowed apps are blocked.**
+
+### iPhone / iPad
+- The parent picks **apps and categories** (e.g. the whole Games category + YouTube) with
+  Apple's picker on the child's device.
+
+### Parent alerts
+All four alerts are on, and each can be toggled per child:
+- device stopped reporting (possible tampering)
+- suspicious session
+- child went into debit
+- workout completed ("Sam earned 250 min")
+
+## 3. iCloud / CloudKit design
+
+### Zones and sharing
+
+CloudKit has no server-side logic, so trust comes from **ownership**: each
+side writes only its own zone and gets a **read-only** share of the other.
 
 | Zone | Owner | Contains | Shared to |
 |------|-------|----------|-----------|
-| `Family` | Parent (private DB) | `Rules`, `Adjustment` entries, `GameList` | Child, **read-only** (zone-wide `CKShare`) |
-| `Activity` | Child (private DB) | `Session` (earn), `Spend` entries, `Device` heartbeats | Parent, **read-only** (zone-wide `CKShare`) |
+| `Family-<childId>` (one per child) | Parent | `Child`, `Rules`, `Adjustment`, `AllowList` | That child, **read-only** |
+| `Activity` | Child | `Session`, `Spend`, `Device` | Parent(s), **read-only** |
 
-- Setup: the parent app creates the `Family` zone and shares it to the child's Apple ID.
-  The child accepts on their iPhone, which creates the `Activity` zone and
-  shares it back. Both apps then see everything.
-- The child can't change the rules or their adjustments. The parent can't edit or delete
-  the child's history, only add adjustments. That gives a clean audit trail.
-- Multiple children means one `Family` share per child (each child should only see their own
-  rules), or one `Rules` record per child in a shared zone. Start with one child.
+- **Pairing flow**: the parent adds a child in Parent mode, which creates the `Family-<childId>` zone and a
+  zone-wide `CKShare`. The share link is sent via Messages/AirDrop and opened on the child's iPhone. Child mode
+  accepts it, creates its own `Activity` zone and shares it back to the parent.
+- A second parent is added as a participant on every family zone and every activity share.
 
 ### Records
 
 ```
-Rules        (Family)   ratio, minCadenceSpm, minHeartRateBpm, qualifyFraction,
-                        minSessionMinutes, dailyEarnCap, maxBank, overdraftLimit,
-                        dailyPlayCap, playWindows (JSON), expiryDays, updatedAt
+Child        (Family)   name, birthYear, timeZone
+Rules        (Family)   ratio, walkCadenceSpm, walkHrPct, otherHrPct, qualifyFraction,
+                        debitLimit, maxBank?, playWindows? (JSON), dailyPlayCap?,
+                        alerts (JSON), updatedAt
 Adjustment   (Family)   minutes (±), note, createdAt
-GameList     (Family)   per-PC list of executables that count as games
-Session      (Activity) recordName = session UUID; startedAt, endedAt,
+AllowList    (Family)   recordName = deviceId; allowed executables (JSON)
+Session      (Activity) recordName = session UUID; activityType, startedAt, endedAt,
                         minutes (JSON per-minute results), qualifyingMinutes,
                         earnedMinutes, rulesSnapshot (JSON), deviceId
-Spend        (Activity) recordName = "<deviceId>:<minute-start ISO>"; minutes, deviceId
-Device       (Activity) recordName = deviceId; kind, name, lastSeenAt,
-                        detectedGames (JSON, PC only)
+Spend        (Activity) recordName = "<deviceId>:<minute-start ISO>"; minutes, deviceId, app
+Device       (Activity) recordName = deviceId; kind [watch|ios|windows], name,
+                        lastSeenAt, detectedApps (JSON, Windows only)
 ```
 
-- **Unique record names make every write idempotent**, so retries and offline
-  replays can't double-count.
-- Everything except `Rules` is append-only, so syncing merges cleanly with no conflicts.
+- Unique record names make every write **idempotent**.
+- Everything except `Rules`/`AllowList`/`Child` is append-only, so syncing merges with no conflicts.
 
-### Balance calculation (on every client, no server)
+### Balance (computed on every client)
+A deterministic fold over `Session.earnedMinutes` (+), `Spend` (−) and `Adjustment`
+(±), sorted by timestamp, applying `maxBank` during the fold. It's implemented once in Swift and
+once in C#, both checked against the same JSON test vectors.
 
-The balance is a deterministic fold over all `Session`, `Spend` and `Adjustment` entries
-sorted by timestamp:
-- `Session` adds `earnedMinutes`, which was already computed on the watch with the
-  rules in force at the time, including the daily earn cap.
-- `max_bank` is applied during the fold: credit above the cap is discarded at that point.
-- `Spend` subtracts. `Adjustment` adds or subtracts.
-- `expiryDays` (optional) expires the oldest credit first during the fold.
-- The **shared core** implements this once in Swift and once in C#, with a shared JSON
-  test-vector suite so the two can't disagree.
+### Trust and limits
+- A child with developer skills could write fake records to their own zone. That's
+  accepted for a family app; the parent's "suspicious session" alert catches the obvious cases
+  (overlaps, more minutes than wall-clock time, implausible HR or cadence).
+- Parent alerts come from CloudKit change notifications on the parent's device, which then
+  posts a local notification. Delivery is **best-effort** (iOS may delay background
+  work). "Device stopped reporting" is checked whenever the parent app runs a
+  background refresh or is opened, so it isn't instant.
 
-`canPlay = balance > -overdraftLimit && withinPlayWindow && todaySpend < dailyPlayCap`
+## 4. Watch logger (watchOS)
 
-### Trade-offs of no server
-- **Trust**: a determined child with developer skills could write fake records to their
-  own zone using the CloudKit API. For a family app that's acceptable. The parent
-  app flags anomalies (sessions overlapping, more minutes than wall-clock time, implausible HR).
-- **Rule changes** reach devices on their next sync, usually within seconds via
-  CloudKit push. If a device is offline, it uses its cached rules.
-- **Cost**: CloudKit private-database storage counts against each user's own iCloud quota.
-  The data is tiny (kilobytes per month).
-
-## 3. Watch logger (watchOS)
-
-- `HKWorkoutSession` + `HKLiveWorkoutBuilder` (activity type `.walking`) keeps
-  the app running with the screen off and streams heart rate.
-- `CMPedometer` gives live cadence (`currentCadence`).
-- Every ~5 s: a sample passes if HR **and** cadence are both at or above the threshold. A minute
-  **qualifies** if passing samples ≥ `qualifyFraction`.
-- UI: Play/Pause/End; live "minutes earned"; green/red "above the bar" indicator;
+- Start screen: pick an activity (Walk/Run, Cycle, Other), then Play.
+- `HKWorkoutSession` + `HKLiveWorkoutBuilder` keeps it running with the screen off and
+  streams HR. `CMPedometer.currentCadence` gives step rate for Walk/Run.
+- UI: Play/Pause/End, live minutes earned, a green/red "above the bar" indicator, and a
   haptic tick per qualifying minute.
-- On End: computes `earnedMinutes` (ratio, minimum session length, today's earn cap) and saves a `Session`
-  record to the child's `Activity` zone via CloudKit (watchOS supports it directly).
-  If offline, it queues and retries. Optionally also saves the workout to HealthKit.
+- On End: computes `earnedMinutes` and saves a `Session` to the child's `Activity` zone
+  (directly from the watch, or queued and retried if offline). It also saves the workout to HealthKit.
 
-**Anti-cheat (good enough, not perfect)**: requiring both HR and cadence means shaking the watch
-alone fails; there's no HR off the wrist; the parent app flags anomalies (section 2).
+## 5. iPhone / iPad app
 
-## 4. Kid app (iOS)
+### Child mode
+- Balance: green in credit, red in debit, plus debit headroom left.
+- Today: earned, played, time left today (cap/window).
+- History.
+- Live updates via CloudKit subscriptions.
+- **Enforcement** (FamilyControls / ManagedSettings / DeviceActivity, needs the
+  **Family Controls Distribution entitlement**; apply early):
+  - `requestAuthorization(for: .child)`, approved by the parent; after that the app can't be deleted
+    without the parent.
+  - The parent picks apps/categories with `FamilyActivityPicker` on the child's device.
+  - When the child can play: remove the shield and start a `DeviceActivity` schedule with threshold events
+    every minute up to the minutes available, respecting the window and cap. The monitor
+    extension records used minutes in the App Group and re-shields at the last one; the app
+    writes them as `Spend` records.
+  - Custom shield screen: "Out of minutes. Go for a walk!" plus the balance.
 
-- Balance front and centre: green in credit, red in debit, plus debit headroom left.
-- Today: earned / spent / remaining today.
-- History from the ledger.
-- Updates live via CloudKit subscriptions (silent push).
-- Hosts the iOS enforcement (section 6).
+### Parent mode
+- List of children with their balances.
+- Per child: rules editor, ledger + add adjustment, devices (last seen),
+  per-PC allowed list (ticked from `Device.detectedApps`), alert toggles.
+- Add child / pairing flow (section 3).
 
-## 5. Parent app (iOS / Mac)
+## 6. Windows enforcer
 
-- Onboarding: create the `Family` zone + rules, then share it to the child via an iCloud share
-  link (Messages/AirDrop). The child accepts in the kid app.
-- Rules editor with all fields from section 2.
-- Ledger with filters; add adjustments with a note.
-- Devices: last seen, enforcer health. Notifies if a PC hasn't been seen while it's
-  likely in use, or if anomalies are found.
-- PC game list: tick which executables reported by the PC count as games.
+.NET 8:
 
-## 6. PC enforcer (Windows) — priority 1 for spending
+1. **`DigitalRewards.Service`** (Windows Service, LocalSystem)
+   - Maps each Windows user (SID) to a child and that child's CloudKit web-auth
+     token (from a one-time Apple sign-in per Windows account at setup; stored with
+     DPAPI; refreshed from each response).
+   - Talks to **CloudKit Web Services**: reads the child's `Family` zone (rules,
+     adjustments, allow list), writes `Spend`/`Device` to the child's `Activity` zone.
+   - Every second, checks the foreground window's process for the active user. If it
+     isn't on the allowed list (or the Windows system list), counts it as play.
+     Each full minute of play produces one `Spend` record.
+   - Reports installed and recently run executables in `Device.detectedApps` so the parent
+     can build the allowed list.
+   - At the limit: closes non-allowed foreground apps and kills them on relaunch (WMI
+     process-start events).
+   - Offline: counts locally and syncs later; blocks after 24 h without a sync.
+   - Recovery: auto-restart; `Device.lastSeenAt` updated every few minutes.
+2. **`DigitalRewards.Tray`** (per user session)
+   - Shows balance and time left; toasts at 10/5/1 minute(s).
+   - Display only; talks to the service over a named pipe.
+3. **Installer** (MSIX or WiX): admin install, plus a setup wizard per child account.
 
-.NET 8, two processes:
+**Fallback** if CloudKit Web Services proves awkward: status/spend files via
+iCloud Drive (iCloud for Windows). Decide after the spike.
 
-1. **`DigitalRewards.Service`**: a Windows Service (LocalSystem).
-   - Talks to **CloudKit Web Services** (REST) with the app's API token plus a
-     user web-auth token. The token is obtained once via Apple sign-in in the setup
-     wizard, stored encrypted with DPAPI, and refreshed from each response.
-   - Reads `Rules`/`Adjustment`/`GameList` from the shared `Family` zone, and reads/writes
-     `Spend`/`Device` in the child's `Activity` zone.
-   - Detects game processes (WMI process-start trace plus a periodic scan), reports the
-     installed executables it finds in `Device.detectedGames`.
-   - While a game runs (*running* or *foreground*, configurable), writes one
-     `Spend` per minute.
-   - At the limit: terminates game processes and kills any relaunch immediately. Toasts at 10/5/1
-     minute(s) remaining.
-   - Offline: uses the cached balance and blocks when it reaches the limit. Blocks entirely if offline
-     for more than N hours (configurable); syncs queued `Spend` records later.
-   - Auto-restart on failure; writes `Device.lastSeenAt` every few minutes.
-2. **`DigitalRewards.Tray`**: shows balance in the child's session; display-only.
+## 7. Phases
 
-**Setup requirement:** the child uses a **standard (non-admin) Windows account**.
-
-**Fallback if CloudKit Web Services proves awkward**: the iOS app mirrors a
-read-only status file to a public iCloud Drive folder (synced to the PC by *iCloud
-for Windows*), and the PC writes spend files back. This is simpler auth but weaker tamper
-resistance and slower sync. Decide after the spike (section 9).
-
-## 7. iOS / iPadOS enforcer — priority 2 for spending
-
-Uses `FamilyControls`, `ManagedSettings` and `DeviceActivity`. Requires the **Family
-Controls (Distribution) entitlement**; apply to Apple early.
-
-- `AuthorizationCenter.shared.requestAuthorization(for: .child)` on the child's
-  device, approved by the parent. After that, the app can't be deleted without the parent.
-- Game selection with `FamilyActivityPicker` on the child's device. The tokens are opaque and
-  device-local, so they're kept in the App Group.
-- Blocking: `ManagedSettingsStore.shield.applications / applicationCategories`.
-- Spending:
-  1. When there's credit: remove the shield and start a `DeviceActivity` schedule with a
-     threshold event at every minute up to the available minutes.
-  2. The `DeviceActivityMonitor` extension records each used minute in the App Group and
-     re-applies the shield at the last one.
-  3. The app writes those minutes as `Spend` records to CloudKit.
-  4. On any balance change, re-plan the schedule.
-- `ShieldConfiguration` extension: "Out of minutes. Go for a walk!" plus the balance.
-
-## 8. Android (phase 3)
-
-Kid app + enforcer using CloudKit Web Services (same as the PC), `UsageStatsManager`,
-a foreground service, and Device Owner or Accessibility for blocking, subject to Google Play policy.
-
-## 9. Phases
-
-1. **Spikes (de-risk first)**
-   - CloudKit zone-wide sharing between a parent account and a **child** Apple ID
-     (read-only both ways).
-   - CloudKit Web Services from a .NET console app: web sign-in, read the shared
-     zone, write to the private zone, token refresh.
-   - Family Controls: per-minute `DeviceActivity` threshold events, accuracy, extension limits.
-2. **Shared core**: ledger fold + rules in Swift and C#, with shared test vectors.
-3. **Earn**: Watch logger + kid app (balance/history) + parent app (rules, sharing, adjustments).
-4. **Spend on PC**: Windows service + tray.
+1. **Spikes**
+   - CloudKit zone-wide sharing parent ⇄ child Apple ID (read-only both ways).
+   - .NET console app: CloudKit web sign-in, read the shared zone, write the private zone,
+     token refresh.
+   - Family Controls: per-minute `DeviceActivity` thresholds, accuracy,
+     extension limits.
+2. **Shared core**: ledger fold + rules engine in Swift and C#, with test vectors.
+3. **Earn**: Watch logger + app (Child: balance/history; Parent: children,
+   rules, pairing, adjustments).
+4. **Spend on PC**: service + tray + installer.
 5. **Spend on iOS**.
-6. **Android**.
-
-## 10. Open questions
-
-- Is the child's watch paired to **their own iPhone**, or set up with **Apple Watch Family
-  Setup**? Family Setup watches have their own Apple ID, but third-party HealthKit/workout
-  support needs checking.
-- Does PC play time count only while the game is **in the foreground**, or whenever it's running?
-- Does the debit allowance need a repayment deadline?
-- Multiple children at launch, or one?
+6. **Alerts & polish**.
