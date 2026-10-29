@@ -69,6 +69,9 @@ public sealed record AgentStatus
     public string? BlockReason { get; init; }
     public DateTimeOffset? LastSyncAt { get; init; }
 
+    /// <summary>Signed in, but this Apple ID can't see the child's zones yet (invite not fully accepted).</summary>
+    public bool SetupNeeded { get; init; }
+
     /// <summary>True when the foreground app costs play time right now.</summary>
     public bool Playing { get; init; }
     public string? PlayingApp { get; init; }

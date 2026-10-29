@@ -20,11 +20,23 @@ public sealed record ChildAccount
     public bool NeedsSignIn { get; init; }
 
     public ZoneId FamilyZone => new(FamilyZoneName, FamilyZoneOwner);
+
+    /// <summary>Activity-&lt;childId&gt;, owned by the same parent as the Family zone.</summary>
+    public ZoneId ActivityZone => new(ContractNames.ActivityZoneFor(FamilyZoneName), FamilyZoneOwner);
 }
 
 /// <summary>Everything persisted for one Windows account (one file, encrypted at rest).</summary>
 public sealed class ChildState
 {
+    /// <summary>
+    /// Storage layout version. 2: the Activity zone is parent-owned (shared database). Older files
+    /// cached a child-owned private Activity zone; <see cref="Migrate"/> drops that cache.
+    /// </summary>
+    public const int CurrentLayout = 2;
+
+    /// <summary>Missing from older files, so it reads as 0 there.</summary>
+    public int Layout { get; set; }
+
     public ChildAccount? Account { get; set; }
     public string? FamilySyncToken { get; set; }
     public string? ActivitySyncToken { get; set; }
@@ -70,6 +82,25 @@ public sealed class ChildState
     }
 
     public ChildSnapshot Snapshot(string deviceId) => ChildSnapshot.From(Decode(FamilyRecords), Decode(ActivityRecords), deviceId);
+
+    /// <summary>Brings an older state up to <see cref="CurrentLayout"/>. Returns true if anything changed.</summary>
+    public bool Migrate()
+    {
+        if (Layout >= CurrentLayout)
+        {
+            return false;
+        }
+        if (Layout < 2)
+        {
+            // The cached Activity records and token came from the old private zone. Unsent spends
+            // are kept: they're real play and go to the new zone on the next sync.
+            ActivitySyncToken = null;
+            ActivityRecords.Clear();
+            LastSyncAt = null;
+        }
+        Layout = CurrentLayout;
+        return true;
+    }
 
     public void ResetCache()
     {

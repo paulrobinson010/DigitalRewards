@@ -90,6 +90,18 @@ internal sealed class TrayContext : ApplicationContext
             return;
         }
 
+        if (s.SetupNeeded)
+        {
+            _statusItem.Text = "Finish joining your family on your iPhone";
+            SetIcon("!", Color.DarkOrange);
+            _icon.Text = "DigitalRewards: finish setup on your iPhone";
+            if (first)
+            {
+                _icon.ShowBalloonTip(10000, "DigitalRewards", SetupMessages.ActivityNotShared, ToolTipIcon.Warning);
+            }
+            return;
+        }
+
         var name = string.IsNullOrEmpty(s.ChildName) ? "" : s.ChildName + ": ";
         var left = s.Blocked ? "no play time left" : $"{s.MinutesAvailable} min left";
         _statusItem.Text = $"{name}balance {Minutes(s.Balance)} · {left}";

@@ -82,6 +82,7 @@ public sealed class Enforcer
         public bool Dirty { get; set; }
         public DateTimeOffset? LastSyncAttempt { get; set; }
         public string? LastSyncError { get; set; }
+        public bool SetupNeeded { get; set; }
         public string? LastClosedApp { get; set; }
         public DateTimeOffset? LastClosedAt { get; set; }
     }
@@ -91,12 +92,17 @@ public sealed class Enforcer
         if (!_runtimes.TryGetValue(sid, out var rt))
         {
             var state = _store.Load(sid);
+            var migrated = state.Migrate();
             rt = new Runtime(sid, state, new PlayMinuteAccountant(_options.DeviceId, _options.Accounting, _clock.GetUtcNow()))
             {
                 Snapshot = state.Snapshot(_options.DeviceId),
                 LastSaved = _clock.GetUtcNow(),
             };
             _runtimes[sid] = rt;
+            if (migrated)
+            {
+                Save(rt);
+            }
         }
         return rt;
     }
@@ -215,6 +221,7 @@ public sealed class Enforcer
             Blocked = rt.Decision.Blocked,
             BlockReason = rt.Decision.Reason,
             LastSyncAt = rt.State.LastSyncAt,
+            SetupNeeded = rt.SetupNeeded,
             LastClosedApp = rt.LastClosedApp,
             LastClosedAt = rt.LastClosedAt,
         };
@@ -375,6 +382,10 @@ public sealed class Enforcer
                     rt.Snapshot = rt.State.Snapshot(_options.DeviceId);
                 }
                 rt.LastSyncError = outcome.Error;
+                if (outcome.Succeeded || outcome.SetupNeeded)
+                {
+                    rt.SetupNeeded = outcome.SetupNeeded;
+                }
                 if (outcome.Error is not null)
                 {
                     _log.LogWarning("Sync failed for {Sid}: {Error}", sid, outcome.Error);

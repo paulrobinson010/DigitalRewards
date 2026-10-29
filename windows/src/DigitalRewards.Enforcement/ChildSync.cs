@@ -7,6 +7,9 @@ public sealed record SyncOutcome
 {
     public bool Succeeded { get; init; }
     public bool NeedsSignIn { get; init; }
+
+    /// <summary>The child's zones aren't shared with this Apple ID (yet, or any more).</summary>
+    public bool SetupNeeded { get; init; }
     public string? Error { get; init; }
     public bool ResetFamily { get; init; }
     public bool ResetActivity { get; init; }
@@ -90,6 +93,12 @@ public static class ChildSync
         "CHANGE_TOKEN_EXPIRED", "BAD_SYNC_TOKEN", "INVALID_SYNC_TOKEN",
     };
 
+    /// <summary>Errors meaning the zone isn't visible: the share wasn't accepted, or was removed.</summary>
+    public static readonly IReadOnlySet<string> ZoneMissingErrors = new HashSet<string>(StringComparer.Ordinal)
+    {
+        "ZONE_NOT_FOUND", "USER_DELETED_ZONE",
+    };
+
     /// <summary>Per-record errors on create that mean the spend is already saved (idempotent retry).</summary>
     public static readonly IReadOnlySet<string> AlreadySavedErrors = new HashSet<string>(StringComparer.Ordinal)
     {
@@ -105,7 +114,7 @@ public static class ChildSync
             var confirmed = new List<string>();
             if (input.PendingSpends.Count > 0)
             {
-                var results = await gateway.SaveSpendsAsync(input.PendingSpends, ct).ConfigureAwait(false);
+                var results = await gateway.SaveSpendsAsync(input.Account.ActivityZone, input.PendingSpends, ct).ConfigureAwait(false);
                 confirmed.AddRange(results
                     .Where(r => r.Succeeded || (r.ServerErrorCode is { } code && AlreadySavedErrors.Contains(code)))
                     .Select(r => r.RecordName));
@@ -113,12 +122,12 @@ public static class ChildSync
 
             var resetFamily = false;
             var resetActivity = false;
-            var family = await FetchAsync(gateway, CloudDatabase.Shared, input.Account.FamilyZone, input.FamilySyncToken, () => resetFamily = true, ct).ConfigureAwait(false);
-            var activity = await FetchAsync(gateway, CloudDatabase.Private, new ZoneId(ContractNames.ActivityZone), input.ActivitySyncToken, () => resetActivity = true, ct).ConfigureAwait(false);
+            var family = await FetchAsync(gateway, input.Account.FamilyZone, input.FamilySyncToken, () => resetFamily = true, ct).ConfigureAwait(false);
+            var activity = await FetchAsync(gateway, input.Account.ActivityZone, input.ActivitySyncToken, () => resetActivity = true, ct).ConfigureAwait(false);
 
             if (input.HeartbeatDue)
             {
-                await gateway.SaveDeviceAsync(input.Device with { LastSeenAt = now }, ct).ConfigureAwait(false);
+                await gateway.SaveDeviceAsync(input.Account.ActivityZone, input.Device with { LastSeenAt = now }, ct).ConfigureAwait(false);
             }
 
             return new SyncOutcome
@@ -138,6 +147,10 @@ public static class ChildSync
         {
             return new SyncOutcome { NeedsSignIn = true, Error = "Sign in to iCloud again.", At = now };
         }
+        catch (CloudKitException e) when (e.ServerErrorCode is { } code && ZoneMissingErrors.Contains(code))
+        {
+            return new SyncOutcome { SetupNeeded = true, Error = SetupMessages.ActivityNotShared, RotatedToken = Rotated(gateway, input.Account), At = now };
+        }
         catch (Exception e) when (e is CloudKitException or HttpRequestException or TaskCanceledException && !ct.IsCancellationRequested)
         {
             return new SyncOutcome { Error = e.Message, RotatedToken = Rotated(gateway, input.Account), At = now };
@@ -147,16 +160,16 @@ public static class ChildSync
     private static string? Rotated(ICloudGateway gateway, ChildAccount account) =>
         gateway.WebAuthToken is { } t && t != account.WebAuthToken ? t : null;
 
-    private static async Task<ZoneChanges> FetchAsync(ICloudGateway gateway, CloudDatabase db, ZoneId zone, string? token, Action onReset, CancellationToken ct)
+    private static async Task<ZoneChanges> FetchAsync(ICloudGateway gateway, ZoneId zone, string? token, Action onReset, CancellationToken ct)
     {
         try
         {
-            return await gateway.FetchChangesAsync(db, zone, token, ct).ConfigureAwait(false);
+            return await gateway.FetchChangesAsync(zone, token, ct).ConfigureAwait(false);
         }
         catch (CloudKitException e) when (token is not null && e.ServerErrorCode is { } code && ResetTokenErrors.Contains(code))
         {
             onReset();
-            return await gateway.FetchChangesAsync(db, zone, null, ct).ConfigureAwait(false);
+            return await gateway.FetchChangesAsync(zone, null, ct).ConfigureAwait(false);
         }
     }
 }

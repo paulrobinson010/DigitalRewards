@@ -8,9 +8,13 @@ public interface ICloudGateway
     /// <summary>The current (possibly rotated) web auth token.</summary>
     string? WebAuthToken { get; }
 
-    Task<ZoneChanges> FetchChangesAsync(CloudDatabase database, ZoneId zone, string? syncToken, CancellationToken ct);
-    Task<IReadOnlyList<RecordResult>> SaveSpendsAsync(IReadOnlyList<SpendInfo> spends, CancellationToken ct);
-    Task SaveDeviceAsync(DeviceInfo device, CancellationToken ct);
+    /// <summary>Fetches a zone the child can see in their shared database (both zones are parent-owned).</summary>
+    Task<ZoneChanges> FetchChangesAsync(ZoneId zone, string? syncToken, CancellationToken ct);
+
+    /// <summary>Creates spends in the child's Activity zone (shared database).</summary>
+    Task<IReadOnlyList<RecordResult>> SaveSpendsAsync(ZoneId activityZone, IReadOnlyList<SpendInfo> spends, CancellationToken ct);
+
+    Task SaveDeviceAsync(ZoneId activityZone, DeviceInfo device, CancellationToken ct);
 }
 
 public interface ICloudGatewayFactory
@@ -20,7 +24,7 @@ public interface ICloudGatewayFactory
     /// <summary>Apple sign-in page for a new web auth token.</summary>
     Task<string> GetSignInUrlAsync(CancellationToken ct);
 
-    /// <summary>Validates a new token and finds the child's family zone.</summary>
+    /// <summary>Validates a new token and finds the child's Family and Activity zones.</summary>
     Task<ChildAccount> BindAsync(string sid, string webAuthToken, CancellationToken ct);
 }
 
@@ -39,29 +43,24 @@ public sealed class CloudGatewayFactory(HttpClient http, CloudKitOptions options
         var client = new CloudKitClient(http, options, webAuthToken);
         var user = await client.GetCurrentUserRecordNameAsync(ct).ConfigureAwait(false);
 
-        var shared = await client.ListZonesAsync(CloudDatabase.Shared, ct).ConfigureAwait(false);
-        var family = shared
+        // Both of the child's zones live in a parent's iCloud, so they show up in the shared database.
+        var shared = (await client.ListZonesAsync(CloudDatabase.Shared, ct).ConfigureAwait(false))
             .Select(z => z.ZoneId)
-            .Where(z => z.ZoneName.StartsWith(ContractNames.FamilyZonePrefix, StringComparison.Ordinal) && z.OwnerRecordName is not null)
+            .Where(z => z.OwnerRecordName is not null)
+            .ToList();
+        var family = shared
+            .Where(z => z.ZoneName.StartsWith(ContractNames.FamilyZonePrefix, StringComparison.Ordinal))
             .ToList();
         if (family.Count == 0)
         {
             throw new BindingException("No family is shared with this Apple ID yet. Ask a parent to add you, then accept the invite in DigitalRewards on your iPhone.");
         }
 
-        var priv = await client.ListZonesAsync(CloudDatabase.Private, ct).ConfigureAwait(false);
-        if (!priv.Any(z => z.ZoneId.ZoneName == ContractNames.ActivityZone))
+        // A child normally sees exactly one family; take one whose Activity zone is shared too.
+        var zone = family.FirstOrDefault(f => shared.Contains(new ZoneId(ContractNames.ActivityZoneFor(f.ZoneName), f.OwnerRecordName)));
+        if (zone is null)
         {
-            throw new BindingException("Open DigitalRewards on your iPhone and finish joining your family first.");
-        }
-
-        // A child normally sees exactly one family zone; prefer the one the Activity zone links to.
-        var zone = family[0];
-        var link = (await client.LookupAsync(CloudDatabase.Private, new ZoneId(ContractNames.ActivityZone), [ContractNames.LinkRecordName], ct).ConfigureAwait(false))
-            .FirstOrDefault(r => r.Succeeded)?.Record;
-        if (link?.GetString("familyZoneName") is { } linkedName)
-        {
-            zone = family.FirstOrDefault(z => z.ZoneName == linkedName) ?? zone;
+            throw new BindingException(SetupMessages.ActivityNotShared);
         }
 
         var childRec = (await client.LookupAsync(CloudDatabase.Shared, zone, [ContractNames.ChildRecordName], ct).ConfigureAwait(false))
@@ -81,21 +80,27 @@ public sealed class CloudGatewayFactory(HttpClient http, CloudKitOptions options
     }
 }
 
+/// <summary>Text shown to the child when their iCloud account isn't fully joined yet.</summary>
+public static class SetupMessages
+{
+    public const string ActivityNotShared =
+        "Your family isn't fully set up for this Apple ID yet. Open DigitalRewards on your iPhone and join with "
+        + "the code from your parent, then try again.";
+}
+
 internal sealed class CloudGateway(CloudKitClient client) : ICloudGateway
 {
-    private static readonly ZoneId Activity = new(ContractNames.ActivityZone);
-
     public string? WebAuthToken => client.WebAuthToken;
 
-    public Task<ZoneChanges> FetchChangesAsync(CloudDatabase database, ZoneId zone, string? syncToken, CancellationToken ct) =>
-        client.FetchZoneChangesAsync(database, zone, syncToken, ct);
+    public Task<ZoneChanges> FetchChangesAsync(ZoneId zone, string? syncToken, CancellationToken ct) =>
+        client.FetchZoneChangesAsync(CloudDatabase.Shared, zone, syncToken, ct);
 
-    public Task<IReadOnlyList<RecordResult>> SaveSpendsAsync(IReadOnlyList<SpendInfo> spends, CancellationToken ct) =>
-        client.ModifyAsync(CloudDatabase.Private, Activity, ModifyOperation.Create, spends.Select(ContractRecords.FromSpend), ct);
+    public Task<IReadOnlyList<RecordResult>> SaveSpendsAsync(ZoneId activityZone, IReadOnlyList<SpendInfo> spends, CancellationToken ct) =>
+        client.ModifyAsync(CloudDatabase.Shared, activityZone, ModifyOperation.Create, spends.Select(ContractRecords.FromSpend), ct);
 
-    public async Task SaveDeviceAsync(DeviceInfo device, CancellationToken ct)
+    public async Task SaveDeviceAsync(ZoneId activityZone, DeviceInfo device, CancellationToken ct)
     {
-        var results = await client.ModifyAsync(CloudDatabase.Private, Activity, ModifyOperation.ForceReplace, [ContractRecords.FromDevice(device)], ct)
+        var results = await client.ModifyAsync(CloudDatabase.Shared, activityZone, ModifyOperation.ForceReplace, [ContractRecords.FromDevice(device)], ct)
             .ConfigureAwait(false);
         if (results.FirstOrDefault(r => !r.Succeeded) is { } failed)
         {

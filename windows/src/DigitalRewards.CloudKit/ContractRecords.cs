@@ -8,7 +8,7 @@ namespace DigitalRewards.CloudKit;
 public static class ContractNames
 {
     public const string FamilyZonePrefix = "Family-";
-    public const string ActivityZone = "Activity";
+    public const string ActivityZonePrefix = "Activity-";
 
     public const string Child = "Child";
     public const string Rules = "Rules";
@@ -18,14 +18,18 @@ public static class ContractNames
     public const string RulesChange = "RulesChange";
     public const string Parent = "Parent";
     public const string AllowList = "AllowList";
-    public const string Link = "Link";
     public const string Session = "Session";
     public const string Spend = "Spend";
     public const string Device = "Device";
 
     public const string ChildRecordName = "child";
     public const string RulesRecordName = "rules";
-    public const string LinkRecordName = "link";
+
+    /// <summary>Family-&lt;childId&gt; becomes Activity-&lt;childId&gt;: both zones are owned by the same parent.</summary>
+    public static string ActivityZoneFor(string familyZoneName) =>
+        ActivityZonePrefix + (familyZoneName.StartsWith(FamilyZonePrefix, StringComparison.Ordinal)
+            ? familyZoneName[FamilyZonePrefix.Length..]
+            : familyZoneName);
 
     public static string AllowListRecordName(string deviceId) => "allow-" + deviceId;
     public static string DeviceRecordName(string deviceId) => "device-" + deviceId;

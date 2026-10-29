@@ -36,13 +36,14 @@ public class CloudKitClientTests
             .Ok("""{"records":[{"recordName":"b","recordType":"Spend","fields":{"minutes":{"value":2,"type":"INT64"}}}]}""");
         var client = FakeHandler.Client(handler);
 
-        var records = await client.QueryAsync(CloudDatabase.Private, new ZoneId("Activity"), "Spend",
+        var records = await client.QueryAsync(CloudDatabase.Shared, new ZoneId("Activity-c1", "_mum"), "Spend",
             [new QueryFilter("at", "GREATER_THAN", CloudValue.TimestampMs(5))], [new QuerySort("at")]);
 
         Assert.Equal(["a", "b"], records.Select(r => r.RecordName));
         Assert.Equal(2, handler.Requests.Count);
         var first = Body(handler.Requests[0].Body);
-        Assert.Equal("Activity", first.GetProperty("zoneID").GetProperty("zoneName").GetString());
+        Assert.Equal("Activity-c1", first.GetProperty("zoneID").GetProperty("zoneName").GetString());
+        Assert.Equal("_mum", first.GetProperty("zoneID").GetProperty("ownerRecordName").GetString());
         Assert.Equal(2, first.GetProperty("resultsLimit").GetInt32());
         Assert.Equal("Spend", first.GetProperty("query").GetProperty("recordType").GetString());
         var filter = first.GetProperty("query").GetProperty("filterBy")[0];
@@ -77,9 +78,9 @@ public class CloudKitClientTests
     public async Task ZoneChangesErrorThrowsWithCode()
     {
         var handler = new FakeHandler()
-            .Ok("""{"zones":[{"zoneID":{"zoneName":"Activity"},"serverErrorCode":"CHANGE_TOKEN_EXPIRED","reason":"old"}]}""");
+            .Ok("""{"zones":[{"zoneID":{"zoneName":"Activity-c1","ownerRecordName":"_mum"},"serverErrorCode":"CHANGE_TOKEN_EXPIRED","reason":"old"}]}""");
         var e = await Assert.ThrowsAsync<CloudKitException>(() =>
-            FakeHandler.Client(handler).FetchZoneChangesAsync(CloudDatabase.Private, new ZoneId("Activity"), "stale"));
+            FakeHandler.Client(handler).FetchZoneChangesAsync(CloudDatabase.Shared, new ZoneId("Activity-c1", "_mum"), "stale"));
         Assert.Equal("CHANGE_TOKEN_EXPIRED", e.ServerErrorCode);
     }
 
@@ -150,12 +151,14 @@ public class CloudKitClientTests
             new CloudRecord("spend-d-202610281701", "Spend").Set("minutes", 1L),
         };
 
-        var results = await client.ModifyAsync(CloudDatabase.Private, new ZoneId("Activity"), ModifyOperation.Create, records);
+        var results = await client.ModifyAsync(CloudDatabase.Shared, new ZoneId("Activity-c1", "_mum"), ModifyOperation.Create, records);
 
         Assert.True(results[0].Succeeded);
         Assert.False(results[1].Succeeded);
         Assert.Equal("CONFLICT", results[1].ServerErrorCode);
+        Assert.Contains("/shared/records/modify", handler.Requests[0].Uri.AbsolutePath);
         var body = Body(handler.Requests[0].Body);
+        Assert.Equal("_mum", body.GetProperty("zoneID").GetProperty("ownerRecordName").GetString());
         Assert.False(body.GetProperty("atomic").GetBoolean());
         var op = body.GetProperty("operations")[0];
         Assert.Equal("create", op.GetProperty("operationType").GetString());
@@ -166,7 +169,7 @@ public class CloudKitClientTests
     public async Task ModifyWithNothingSendsNothing()
     {
         var handler = new FakeHandler();
-        var results = await FakeHandler.Client(handler).ModifyAsync(CloudDatabase.Private, new ZoneId("Activity"), ModifyOperation.Create, []);
+        var results = await FakeHandler.Client(handler).ModifyAsync(CloudDatabase.Shared, new ZoneId("Activity-c1", "_mum"), ModifyOperation.Create, []);
         Assert.Empty(results);
         Assert.Empty(handler.Requests);
     }

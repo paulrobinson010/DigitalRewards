@@ -68,15 +68,22 @@ public sealed class MemoryStore : IStateStore
     public void Delete(string sid) => _states.Remove(sid);
 }
 
-/// <summary>An in-memory iCloud for one child: a family zone and an activity zone.</summary>
+/// <summary>An in-memory iCloud for one child: Mum's family and activity zones, shared with the child.</summary>
 public sealed class FakeCloud : ICloudGatewayFactory, ICloudGateway
 {
     public static readonly ZoneId Family = new("Family-c1", "_mum");
+    public static readonly ZoneId Activity = new("Activity-c1", "_mum");
 
     public Dictionary<string, CloudRecord> FamilyRecords { get; } = [];
     public Dictionary<string, CloudRecord> ActivityRecords { get; } = [];
     public List<DeviceInfo> Devices { get; } = [];
     public bool Offline { get; set; }
+
+    /// <summary>False: the child hasn't accepted the Activity share (or it was removed).</summary>
+    public bool ActivityShared { get; set; } = true;
+
+    /// <summary>Zones that spends and device heartbeats were written to.</summary>
+    public List<ZoneId> WriteZones { get; } = [];
     public bool AuthExpired { get; set; }
     public string? ExpireTokenFor { get; set; }
     public string? RotateTokenTo { get; set; }
@@ -117,16 +124,29 @@ public sealed class FakeCloud : ICloudGatewayFactory, ICloudGateway
         }
     }
 
-    public Task<ZoneChanges> FetchChangesAsync(CloudDatabase database, ZoneId zone, string? syncToken, CancellationToken ct)
+    private void CheckZone(ZoneId zone)
+    {
+        if (zone != Family && zone != Activity)
+        {
+            throw new InvalidOperationException("Unexpected zone " + zone);
+        }
+        if (zone == Activity && !ActivityShared)
+        {
+            throw new CloudKitException("ZONE_NOT_FOUND", "zone not found", System.Net.HttpStatusCode.OK);
+        }
+    }
+
+    public Task<ZoneChanges> FetchChangesAsync(ZoneId zone, string? syncToken, CancellationToken ct)
     {
         Check();
+        CheckZone(zone);
         FetchCalls++;
         FetchTokens.Add(syncToken);
         if (syncToken is not null && syncToken == ExpireTokenFor)
         {
             throw new CloudKitException("CHANGE_TOKEN_EXPIRED", "expired", System.Net.HttpStatusCode.OK);
         }
-        var source = database == CloudDatabase.Shared ? FamilyRecords : ActivityRecords;
+        var source = zone == Family ? FamilyRecords : ActivityRecords;
         if (RotateTokenTo is not null)
         {
             WebAuthToken = RotateTokenTo;
@@ -135,9 +155,11 @@ public sealed class FakeCloud : ICloudGatewayFactory, ICloudGateway
         return Task.FromResult(new ZoneChanges(zone, source.Values.ToList(), "tok-" + FetchCalls));
     }
 
-    public Task<IReadOnlyList<RecordResult>> SaveSpendsAsync(IReadOnlyList<SpendInfo> spends, CancellationToken ct)
+    public Task<IReadOnlyList<RecordResult>> SaveSpendsAsync(ZoneId activityZone, IReadOnlyList<SpendInfo> spends, CancellationToken ct)
     {
         Check();
+        CheckZone(activityZone);
+        WriteZones.Add(activityZone);
         var results = new List<RecordResult>();
         foreach (var s in spends)
         {
@@ -152,9 +174,11 @@ public sealed class FakeCloud : ICloudGatewayFactory, ICloudGateway
         return Task.FromResult<IReadOnlyList<RecordResult>>(results);
     }
 
-    public Task SaveDeviceAsync(DeviceInfo device, CancellationToken ct)
+    public Task SaveDeviceAsync(ZoneId activityZone, DeviceInfo device, CancellationToken ct)
     {
         Check();
+        CheckZone(activityZone);
+        WriteZones.Add(activityZone);
         Devices.Add(device);
         return Task.CompletedTask;
     }

@@ -352,3 +352,63 @@ public class FileStateStoreTests
         }
     }
 }
+
+public class BindingTests
+{
+    private sealed class Canned(params string[] responses) : HttpMessageHandler
+    {
+        private readonly Queue<string> _responses = new(responses);
+        public List<Uri> Requests { get; } = [];
+
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
+        {
+            Requests.Add(request.RequestUri!);
+            return Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+            {
+                Content = new StringContent(_responses.Dequeue(), System.Text.Encoding.UTF8, "application/json"),
+            });
+        }
+    }
+
+    private static CloudGatewayFactory Factory(Canned handler) =>
+        new(new HttpClient(handler), new CloudKitOptions { ApiToken = "api" });
+
+    private const string User = """{"userRecordName":"_child"}""";
+    private const string Child = """{"records":[{"recordName":"child","recordType":"Child","fields":{"childId":{"value":"c1","type":"STRING"},"name":{"value":"Sam","type":"STRING"}}}]}""";
+
+    [Fact]
+    public async Task BindsToFamilyWhoseActivityZoneIsShared()
+    {
+        var handler = new Canned(User,
+            """{"zones":[{"zoneID":{"zoneName":"Family-c0","ownerRecordName":"_dad"}},{"zoneID":{"zoneName":"Family-c1","ownerRecordName":"_mum"}},{"zoneID":{"zoneName":"Activity-c1","ownerRecordName":"_mum"}}]}""",
+            Child);
+
+        var account = await Factory(handler).BindAsync("S-1", "web", default);
+
+        Assert.Equal("Family-c1", account.FamilyZoneName);
+        Assert.Equal("_mum", account.FamilyZoneOwner);
+        Assert.Equal(new ZoneId("Activity-c1", "_mum"), account.ActivityZone);
+        Assert.Equal("Sam", account.ChildName);
+        Assert.DoesNotContain(handler.Requests, u => u.AbsolutePath.Contains("/private/"));
+    }
+
+    [Fact]
+    public async Task FamilyWithoutActivityShareNeedsSetup()
+    {
+        var handler = new Canned(User, """{"zones":[{"zoneID":{"zoneName":"Family-c1","ownerRecordName":"_mum"}}]}""");
+        var e = await Assert.ThrowsAsync<BindingException>(() => Factory(handler).BindAsync("S-1", "web", default));
+        Assert.Equal(SetupMessages.ActivityNotShared, e.Message);
+    }
+
+    [Fact]
+    public async Task ActivityZoneOfAnotherOwnerDoesNotCount()
+    {
+        var handler = new Canned(User,
+            """{"zones":[{"zoneID":{"zoneName":"Family-c1","ownerRecordName":"_mum"}},{"zoneID":{"zoneName":"Activity-c1","ownerRecordName":"_dad"}}]}""");
+        await Assert.ThrowsAsync<BindingException>(() => Factory(handler).BindAsync("S-1", "web", default));
+    }
+
+    [Fact]
+    public void ActivityZoneNameFollowsFamilyZone() =>
+        Assert.Equal("Activity-1b2c", ContractNames.ActivityZoneFor("Family-1b2c"));
+}

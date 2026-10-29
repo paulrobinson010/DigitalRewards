@@ -211,4 +211,88 @@ public class EnforcerTests
         await SignInAsync();
         Assert.Equal(0, _enforcer.StatusOf(Sid).Balance);
     }
+
+    [Fact]
+    public async Task SpendsAndHeartbeatsGoToTheParentOwnedActivityZone()
+    {
+        _cloud.SetRules(debitLimit: 60);
+        await SignInAsync();
+        await PlayAsync("game.exe", 61);
+        await _enforcer.SyncOneAsync(Sid, default);
+
+        Assert.NotEmpty(_cloud.WriteZones);
+        Assert.All(_cloud.WriteZones, z => Assert.Equal(new ZoneId("Activity-c1", "_mum"), z));
+        Assert.Contains(_cloud.ActivityRecords.Values, r => r.RecordType == "Spend");
+    }
+
+    [Fact]
+    public async Task MissingActivityShareShowsSetupNeededUntilAccepted()
+    {
+        _cloud.SetRules(debitLimit: 60);
+        _cloud.ActivityShared = false;
+        await SignInAsync();
+
+        var status = _enforcer.StatusOf(Sid);
+        Assert.True(status.SignedIn);
+        Assert.True(status.SetupNeeded);
+        Assert.True(status.Blocked); // never synced
+
+        _cloud.ActivityShared = true;
+        _clock.Advance(TimeSpan.FromMinutes(1));
+        await _enforcer.SyncOneAsync(Sid, default);
+        status = _enforcer.StatusOf(Sid);
+        Assert.False(status.SetupNeeded);
+        Assert.False(status.Blocked);
+    }
+
+    [Fact]
+    public void OldPrivateZoneCacheIsDroppedOnLoad()
+    {
+        var old = new ChildState
+        {
+            Layout = 0,
+            Account = new ChildAccount
+            {
+                Sid = Sid, WebAuthToken = "t", UserRecordName = "_child",
+                FamilyZoneName = "Family-c1", FamilyZoneOwner = "_mum",
+            },
+            ActivitySyncToken = "private-token",
+            LastSyncAt = T0,
+            PendingSpends = [new SpendInfo("pc1", T0.AddHours(-1), 1, "game.exe")],
+        };
+        old.ActivityRecords["session-old"] = new System.Text.Json.Nodes.JsonObject { ["recordName"] = "session-old" };
+
+        Assert.True(old.Migrate());
+        Assert.Equal(ChildState.CurrentLayout, old.Layout);
+        Assert.Null(old.ActivitySyncToken);
+        Assert.Empty(old.ActivityRecords);
+        Assert.Null(old.LastSyncAt);
+        Assert.Single(old.PendingSpends);
+        Assert.Equal(new ZoneId("Activity-c1", "_mum"), old.Account!.ActivityZone);
+        Assert.False(old.Migrate());
+    }
+
+    [Fact]
+    public async Task MigratedStateIsSavedWhenLoaded()
+    {
+        var old = new ChildState
+        {
+            Account = new ChildAccount
+            {
+                Sid = Sid, WebAuthToken = "t", UserRecordName = "_child",
+                FamilyZoneName = "Family-c1", FamilyZoneOwner = "_mum",
+            },
+            ActivitySyncToken = "private-token",
+        };
+        _store.Save(Sid, old);
+        _store.Saved.Remove(Sid);
+
+        _cloud.SetRules(debitLimit: 60);
+        _cloud.AddEarn("session-1", 30, T0.AddHours(-1));
+        await _enforcer.SyncOneAsync(Sid, default);
+
+        Assert.True(_store.Saved.ContainsKey(Sid));
+        Assert.Equal(30, _enforcer.StatusOf(Sid).Balance);
+        Assert.Equal(new ZoneId("Activity-c1", "_mum"), _cloud.WriteZones.Last());
+    }
 }
