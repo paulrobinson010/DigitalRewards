@@ -8,6 +8,9 @@
   copies them to Program Files, writes appsettings.json, registers the "DigitalRewards" service
   (LocalSystem, automatic start, restart on failure) and starts it.
 
+  The GitHub Actions build ships a package whose appsettings.json already holds the API token
+  and environment; Install.cmd in that package runs this script with -SourceDir and no token.
+
 .EXAMPLE
   .\Install.ps1 -ApiToken 0123abcd... -Environment production
 .EXAMPLE
@@ -15,9 +18,10 @@
 #>
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory = $true)][string]$ApiToken,
-    [ValidateSet('development', 'production')][string]$Environment = 'development',
-    [string]$ContainerId = 'iCloud.com.digitalrewards.app',
+    # These override appsettings.json; leave them out to keep what the package was built with.
+    [string]$ApiToken,
+    [ValidateSet('development', 'production')][string]$Environment,
+    [string]$ContainerId,
     [string]$InstallDir = (Join-Path $env:ProgramFiles 'DigitalRewards'),
     [string]$SourceDir
 )
@@ -40,6 +44,9 @@ if (-not $SourceDir) {
     }
 }
 
+# Files extracted from a downloaded zip carry the "from the internet" mark; clear it.
+Get-ChildItem -Path $SourceDir -Recurse -File | Unblock-File
+
 foreach ($exe in 'DigitalRewards.Service.exe', 'DigitalRewards.Tray.exe') {
     if (-not (Test-Path (Join-Path $SourceDir $exe))) { throw "$exe not found in $SourceDir" }
 }
@@ -57,9 +64,12 @@ Copy-Item -Path (Join-Path $SourceDir '*') -Destination $InstallDir -Recurse -Fo
 
 $settingsPath = Join-Path $InstallDir 'appsettings.json'
 $settings = Get-Content $settingsPath -Raw | ConvertFrom-Json
-$settings.CloudKit.ApiToken = $ApiToken
-$settings.CloudKit.Environment = $Environment
-$settings.CloudKit.ContainerId = $ContainerId
+if ($ApiToken) { $settings.CloudKit.ApiToken = $ApiToken }
+if ($Environment) { $settings.CloudKit.Environment = $Environment }
+if ($ContainerId) { $settings.CloudKit.ContainerId = $ContainerId }
+if (-not $settings.CloudKit.ApiToken -or $settings.CloudKit.ApiToken -like 'REPLACE_WITH*') {
+    throw 'No CloudKit API token: pass -ApiToken, or use a package built by GitHub Actions.'
+}
 $settings | ConvertTo-Json -Depth 10 | Set-Content -Path $settingsPath -Encoding UTF8
 
 # appsettings.json holds the API token: only SYSTEM and Administrators may read it.

@@ -1,0 +1,52 @@
+name: Windows app
+
+on:
+  push:
+    branches: [main]
+    paths: ["windows/**", "shared/**", ".github/workflows/windows.yml"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    env:
+      # Must match the CloudKit environment the iPhone app uses: TestFlight and
+      # App Store builds use production; builds run from Xcode use development.
+      CLOUDKIT_ENVIRONMENT: ${{ vars.CLOUDKIT_ENVIRONMENT || 'production' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Test
+        run: dotnet test windows/DigitalRewards.sln -c Release
+
+      - name: Publish
+        run: |
+          foreach ($project in 'DigitalRewards.Service', 'DigitalRewards.Tray') {
+            dotnet publish "windows/src/$project/$project.csproj" -c Release -r win-x64 --self-contained true -o package/app
+            if ($LASTEXITCODE -ne 0) { exit 1 }
+          }
+          Copy-Item windows/install/Install.cmd, windows/install/Install.ps1, windows/install/Uninstall.cmd, windows/install/Uninstall.ps1 package/
+
+      - name: Add CloudKit settings
+        env:
+          CLOUDKIT_API_TOKEN: ${{ secrets.CLOUDKIT_API_TOKEN }}
+        run: |
+          if (-not $env:CLOUDKIT_API_TOKEN) {
+            Write-Error 'Add the CLOUDKIT_API_TOKEN repository secret (Settings > Secrets and variables > Actions).'
+            exit 1
+          }
+          $path = 'package/app/appsettings.json'
+          $settings = Get-Content $path -Raw | ConvertFrom-Json
+          $settings.CloudKit.ApiToken = $env:CLOUDKIT_API_TOKEN
+          $settings.CloudKit.Environment = $env:CLOUDKIT_ENVIRONMENT
+          $settings | ConvertTo-Json -Depth 10 | Set-Content -Path $path -Encoding UTF8
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DigitalRewards-Windows-${{ env.CLOUDKIT_ENVIRONMENT }}
+          path: package/
+          retention-days: 30

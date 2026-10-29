@@ -69,12 +69,28 @@ dotnet test DigitalRewards.sln
 2. **API Access → Tokens → New token**:
    - Name: `Windows enforcer`
    - Sign in callback: **URL Redirect**, `http://localhost:43117/ck-callback`
-   - Copy the token; it goes into `Install.ps1 -ApiToken`.
+   - Copy the token; it goes into the `CLOUDKIT_API_TOKEN` GitHub secret (or `Install.ps1 -ApiToken`).
 3. Make sure the schema from `docs/CONTRACT.md` §6 is deployed to the environment you use
    (`development` while testing, `production` for App Store builds). The enforcer reads with
    `changes/zone` and `records/lookup`, so it needs no extra query indexes.
 
-## Install on a PC
+## Install on a PC (GitHub Actions build, recommended)
+
+GitHub builds a ready-to-install package on every push to `main` that touches `windows/` or
+`shared/` (also runnable by hand: Actions → **Windows app** → Run workflow). The CloudKit API token
+is baked into the package's `appsettings.json` from a repository secret.
+
+One-time setup on GitHub (Settings → Secrets and variables → Actions):
+- **Secret** `CLOUDKIT_API_TOKEN`: the token from the CloudKit console.
+- Optional **variable** `CLOUDKIT_ENVIRONMENT`: `production` (default; matches TestFlight and App Store
+  builds of the iPhone app) or `development` (matches builds run from Xcode).
+
+To install:
+1. Actions → latest **Windows app** run → download the `DigitalRewards-Windows-…` artifact (a zip).
+2. Unzip it on the PC and double-click **Install.cmd**. Accept the administrator prompt.
+3. To remove it later: double-click **Uninstall.cmd**.
+
+## Install on a PC (build it yourself)
 
 Prerequisites:
 - Windows 10/11 x64.
