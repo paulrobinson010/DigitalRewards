@@ -43,10 +43,12 @@ and closes apps when time runs out. It implements `docs/SPEC.md` §6 and `docs/C
   - The caller's Windows account comes from the pipe itself, so an agent can't claim to be another user.
   - Children must use **standard** accounts: they can't stop the service, edit Program Files, or read the state folder.
 - **Balance.** The service applies the CONTRACT §3–5 rules to the cached Family zone (rules, adjustments,
-  overrides, bonuses, allow list) and Activity zone (sessions, spends), plus spends recorded but not yet uploaded.
+  overrides, bonuses, allow list) and `Activity-<childId>` zone (sessions, spends), plus spends recorded but not yet uploaded.
+  Both zones belong to the parent who added the child and are shared with the child, so the PC uses the
+  child's **shared** database only and nothing counts against the child's iCloud storage.
 - **Sync.** Every 30 seconds per signed-in account:
   1. Upload pending spends (`records/modify`, `create`; `CONFLICT` means already saved).
-  2. Pull changes from the shared `Family-<childId>` zone and the private `Activity` zone (`changes/zone`, incremental via sync tokens).
+  2. Pull changes from the shared `Family-<childId>` and `Activity-<childId>` zones (`changes/zone`, incremental via sync tokens).
   3. Every 5 minutes, write the `Device` heartbeat with the apps found on this PC (Uninstall registry plus apps seen in the foreground) for the parent's allow-list picker.
 - **State** lives in `%ProgramData%\DigitalRewards`, with an ACL of SYSTEM and Administrators only. There is one DPAPI-encrypted
   file per Windows account, holding the iCloud web token, sync tokens, cached records and pending spends.
@@ -100,7 +102,9 @@ To install:
 Prerequisites:
 - Windows 10/11 x64.
 - The .NET 8 SDK on the machine that builds it (the output is self-contained, so the PC itself needs no .NET).
-- Each child already set up on their iPhone: they've joined the family in the DigitalRewards app, which creates their `Activity` zone.
+- Each child already set up on their iPhone: they've joined the family in the DigitalRewards app with the parent's code,
+  which accepts both of the child's shares (`Family-<childId>` and `Activity-<childId>`). Until then, sign-in on the PC
+  says the family isn't fully set up; if a share disappears later, the tray shows "Finish joining your family on your iPhone".
 
 From an **elevated** PowerShell in `windows\install`:
 
@@ -168,5 +172,7 @@ Logs go to the Windows Event Log (Application, source `DigitalRewards`).
 - `records/modify` per-record error for creating an existing record is assumed to be `CONFLICT`
   (`EXISTS`/`UNIQUE_FIELD_ERROR` are also treated as "already saved"). `forceReplace` is assumed to create a
   record if it's missing (used for `Device`).
-- Shared-database access (`zones/list`, `changes/zone`, `records/lookup` on `/shared/`) works with a web auth token
-  for a share the user accepted on their iPhone.
+- Shared-database access (`zones/list`, `changes/zone`, `records/lookup` and `records/modify` on `/shared/`) works
+  with a web auth token for shares the user accepted on their iPhone, including **writes** to the read-write
+  `Activity-<childId>` share.
+- A zone that isn't (or is no longer) shared with the child is reported as `ZONE_NOT_FOUND` or `USER_DELETED_ZONE`.
