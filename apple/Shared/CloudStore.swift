@@ -46,6 +46,25 @@ enum CloudStoreError: LocalizedError {
 
 extension Error {
     var ckCode: CKError.Code? { (self as? CKError)?.code }
+
+    /// Text to show people: plain explanations for the CloudKit errors families actually hit.
+    var userMessage: String {
+        var code = ckCode
+        if code == .partialFailure, let errors = (self as? CKError)?.partialErrorsByItemID?.values {
+            code = errors.compactMap(\.ckCode).first { $0 != .batchRequestFailed } ?? code
+        }
+        switch code {
+        case .quotaExceeded:
+            return "This iCloud account is full, so DigitalRewards can't save. Free up iCloud storage "
+                + "(Settings › your name › iCloud) or share an iCloud+ plan with the family, then try again."
+        case .notAuthenticated:
+            return "Sign in to iCloud in Settings, then try again."
+        case .networkUnavailable, .networkFailure:
+            return "No internet connection. Try again when you're online."
+        default:
+            return localizedDescription
+        }
+    }
 }
 
 /// Mutable box for collecting results inside CloudKit operation callbacks.

@@ -84,7 +84,7 @@ struct AddChildView: View {
                 childEmail: email, childPhone: phone, me: me, otherParents: model.allParents)
             await model.refresh()
         } catch {
-            self.error = error.localizedDescription
+            self.error = error.userMessage
         }
     }
 }
@@ -145,7 +145,7 @@ struct TakeOverView: View {
                                                     dropPreviousOwner: dropOwner, me: me)
             await model.refresh()
         } catch {
-            self.error = error.localizedDescription
+            self.error = error.userMessage
         }
     }
 }

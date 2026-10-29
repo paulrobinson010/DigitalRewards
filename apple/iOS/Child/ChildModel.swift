@@ -60,7 +60,7 @@ final class ChildModel {
 
             await afterRefresh(newState)
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = error.userMessage
             // Offline or failed: keep showing what this device has, including its own writes.
             if let local = await localState() {
                 state = local
@@ -97,7 +97,7 @@ final class ChildModel {
                                                             store: store)
                 lastParentKeys = keys
             } catch {
-                errorMessage = error.localizedDescription
+                errorMessage = error.userMessage
             }
         }
 

@@ -66,7 +66,7 @@ struct ParentHomeView: View {
                                 schemaMessage = "All record types now exist in the Development schema. "
                                     + "Deploy them to Production in the CloudKit Console."
                             } catch {
-                                schemaMessage = error.localizedDescription
+                                schemaMessage = error.userMessage
                             }
                         }
                     }
@@ -167,7 +167,7 @@ struct ParentOnboardingView: View {
         do {
             try await model.saveProfile(displayName: name, email: email, phone: phone)
         } catch {
-            self.error = error.localizedDescription
+            self.error = error.userMessage
         }
     }
 }

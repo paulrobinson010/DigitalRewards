@@ -135,7 +135,7 @@ struct InviteParentView: View {
                                                           families: model.families)
             await model.refresh()
         } catch {
-            self.error = error.localizedDescription
+            self.error = error.userMessage
         }
     }
 }
@@ -184,7 +184,7 @@ struct JoinParentView: View {
             await model.refresh()
             dismiss()
         } catch {
-            self.error = error.localizedDescription
+            self.error = error.userMessage
         }
     }
 }

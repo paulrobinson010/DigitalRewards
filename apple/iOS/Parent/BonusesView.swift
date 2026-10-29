@@ -66,7 +66,7 @@ struct BonusesView: View {
             try await FamilyService.deleteBonus(bonus, family: entry.family)
             await model.refresh()
         } catch {
-            self.error = error.localizedDescription
+            self.error = error.userMessage
         }
         deleting = nil
     }
@@ -135,7 +135,7 @@ struct AddBonusView: View {
             await model.refresh()
             dismiss()
         } catch {
-            self.error = error.localizedDescription
+            self.error = error.userMessage
         }
     }
 }

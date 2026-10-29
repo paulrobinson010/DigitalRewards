@@ -121,7 +121,7 @@ final class ParentModel {
             await AlertMonitor.process(children: children, prefs: prefs, now: now)
             await subscribeIfNeeded()
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = error.userMessage
             // Offline or failed: keep showing what this device has, including its own writes.
             await showLocalCopy()
             hasLoaded = true

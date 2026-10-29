@@ -99,7 +99,7 @@ struct ChildDetailView: View {
         do {
             newCode = try await FamilyService.newChildInvite(family: entry.family)
         } catch {
-            self.error = error.localizedDescription
+            self.error = error.userMessage
         }
     }
 }
@@ -160,7 +160,7 @@ struct AdjustmentView: View {
             await model.refresh()
             dismiss()
         } catch {
-            self.error = error.localizedDescription
+            self.error = error.userMessage
         }
     }
 }
@@ -239,7 +239,7 @@ struct SessionOverrideView: View {
             await model.refresh()
             dismiss()
         } catch {
-            self.error = error.localizedDescription
+            self.error = error.userMessage
         }
     }
 
@@ -250,7 +250,7 @@ struct SessionOverrideView: View {
             await model.refresh()
             dismiss()
         } catch {
-            self.error = error.localizedDescription
+            self.error = error.userMessage
         }
     }
 }

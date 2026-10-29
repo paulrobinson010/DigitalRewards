@@ -43,7 +43,7 @@ final class SessionUploader {
                 lastError = nil
             } catch {
                 // Typically offline, or the iPhone hasn't created the Activity zone yet. Retry later.
-                lastError = error.localizedDescription
+                lastError = error.userMessage
                 break
             }
         }

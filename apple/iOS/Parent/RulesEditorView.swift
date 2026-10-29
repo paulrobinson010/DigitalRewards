@@ -166,7 +166,7 @@ struct RulesEditorView: View {
         } catch let c as RulesConflict {
             conflict = c
         } catch {
-            self.error = error.localizedDescription
+            self.error = error.userMessage
         }
     }
 }

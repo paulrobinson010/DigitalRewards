@@ -74,7 +74,7 @@ final class WorkoutManager: NSObject {
         do {
             try await healthStore.requestAuthorization(toShare: share, read: read)
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = error.userMessage
         }
     }
 
@@ -118,7 +118,7 @@ final class WorkoutManager: NSObject {
             startPedometer()
             startSampler()
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = error.userMessage
             session = nil
             builder = nil
             phase = .idle
@@ -151,7 +151,7 @@ final class WorkoutManager: NSObject {
             _ = try await builder?.finishWorkout()
         } catch {
             // The session still counts even if saving to Health fails.
-            errorMessage = error.localizedDescription
+            errorMessage = error.userMessage
         }
 
         let minutes = accumulator.completed
@@ -281,7 +281,7 @@ extension WorkoutManager: HKWorkoutSessionDelegate {
     }
 
     nonisolated func workoutSession(_ workoutSession: HKWorkoutSession, didFailWithError error: Error) {
-        let message = error.localizedDescription
+        let message = error.userMessage
         Task { @MainActor in self.errorMessage = message }
     }
 }

@@ -39,7 +39,7 @@ final class WatchStore: NSObject, WCSessionDelegate {
                                bonuses: family.bonuses, familyZone: zone, updatedAt: Date()))
             lastError = nil
         } catch {
-            lastError = error.localizedDescription
+            lastError = error.userMessage
         }
     }
 

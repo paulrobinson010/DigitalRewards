@@ -61,7 +61,7 @@ struct ChildJoinView: View {
             error = nil
             if isRejoin { dismiss() }
         } catch {
-            self.error = error.localizedDescription
+            self.error = error.userMessage
         }
     }
 }
