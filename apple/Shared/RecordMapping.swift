@@ -11,13 +11,11 @@ enum RecordType {
     static let bonus = "Bonus"
     static let rulesChange = "RulesChange"
     static let allowList = "AllowList"
-    static let link = "Link"
     static let session = "Session"
     static let spend = "Spend"
     static let device = "Device"
     static let alertPrefs = "AlertPrefs"
     static let invite = "Invite"
-    static let shareLink = "ShareLink"
 }
 
 // MARK: - Typed field access
@@ -231,25 +229,6 @@ extension AllowListInfo {
 
 // MARK: - Activity zone
 
-extension LinkInfo {
-    static let recordName = "link"
-
-    init?(record: CKRecord) {
-        guard let childId = record.string("childId") else { return nil }
-        self.init(childId: childId,
-                  familyZoneName: record.string("familyZoneName") ?? AppConfig.familyZoneName(childId: childId),
-                  familyZoneOwner: record.string("familyZoneOwner") ?? "")
-    }
-
-    func makeRecord(zoneID: CKRecordZone.ID) -> CKRecord {
-        let r = CKRecord(recordType: RecordType.link, recordID: .init(recordName: Self.recordName, zoneID: zoneID))
-        r.put("childId", childId)
-        r.put("familyZoneName", familyZoneName)
-        r.put("familyZoneOwner", familyZoneOwner)
-        return r
-    }
-}
-
 extension SessionInfo {
     static func recordName(uuid: UUID) -> String { "session-" + uuid.uuidString.lowercased() }
 
@@ -354,16 +333,6 @@ extension InviteInfo {
         r.put("kind", kind.rawValue)
         r.put("shareURLs", JSONText.encode(shareURLs.map(\.absoluteString)))
         r.put("expiresAt", expiresAt)
-        return r
-    }
-}
-
-enum ShareLinkRecord {
-    static func recordName(childId: String) -> String { "sharelink-" + childId }
-
-    static func make(childId: String, url: URL) -> CKRecord {
-        let r = CKRecord(recordType: RecordType.shareLink, recordID: .init(recordName: recordName(childId: childId)))
-        r.put("shareURL", url.absoluteString)
         return r
     }
 }

@@ -54,8 +54,9 @@ enum FamilyService {
 
     // MARK: Children
 
-    /// Creates the child's family zone, shares it (other parents read-write, child
-    /// read-only) and returns a 6-digit invite code for the child.
+    /// Creates the child's `Family` and `Activity` zones in this parent's iCloud, shares
+    /// both (other parents read-write; the child read-only on Family, read-write on
+    /// Activity) and returns a 6-digit invite code for the child.
     static func addChild(name: String, birthYear: Int, timeZone: String,
                          childEmail: String?, childPhone: String?,
                          me: ParentProfile, otherParents: [ParentInfo],
@@ -65,6 +66,7 @@ enum FamilyService {
         }
         let childId = UUID().uuidString.lowercased()
         let zone = try await store.ensurePrivateZone(AppConfig.familyZoneName(childId: childId))
+        let activity = try await store.ensurePrivateZone(AppConfig.activityZoneName(childId: childId))
         let child = ChildInfo(childId: childId, name: name, birthYear: birthYear, timeZone: timeZone)
         let others = otherParents.filter { $0.recordName != me.parentInfo.recordName }
         var records = [child.makeRecord(zoneID: zone.zoneID),
@@ -73,24 +75,61 @@ enum FamilyService {
         records += others.map { $0.makeRecord(zoneID: zone.zoneID) }
         try await store.upsert(records, scope: .privateDB)
 
-        let share = try await shareFamilyZone(zone, childName: name, childLookup: childLookup,
-                                              parents: others, store: store)
-        guard let url = share.url else { throw CloudStoreError.shareURLMissing }
-        return try await createInvite(kind: .child, urls: [url], store: store)
+        let urls = try await shareChildZones(family: zone, activity: activity, childName: name,
+                                             childLookup: childLookup, parents: others, store: store)
+        // Mirror the new zones now rather than waiting for them to show up in the
+        // private database's change feed.
+        try? await SyncEngine.shared.syncZone(zone)
+        try? await SyncEngine.shared.syncZone(activity)
+        return try await createInvite(kind: .child, urls: urls, store: store)
     }
 
-    /// A fresh code for a child who hasn't joined yet (codes expire after 7 days).
+    /// A fresh code for a child who hasn't joined yet (codes expire after 7 days). For a
+    /// child added before activity moved to the parent's iCloud, this also creates their
+    /// Activity zone and share.
     static func newChildInvite(family: FamilySnapshot, store: CloudStore = .shared) async throws -> String {
-        guard let share = try await store.zoneShare(for: family.zone), let url = share.url else {
+        guard let familyShare = try await store.zoneShare(for: family.zone), let familyURL = familyShare.url else {
             throw CloudStoreError.shareURLMissing
         }
-        return try await createInvite(kind: .child, urls: [url], store: store)
+        let activityZone = ChildLocator.activityZone(for: family.zone)
+        var activityShare = try? await store.zoneShare(for: activityZone)
+        if activityShare == nil, family.zone.scope == .privateDB {
+            // The child is the read-only participant on the Family share.
+            guard let childLookup = familyShare.participants
+                .first(where: { $0.role != .owner && $0.permission == .readOnly })?.userIdentity.lookupInfo else {
+                throw CloudStoreError.participantNotFound("\(family.child.name) (add them again with their Apple ID)")
+            }
+            let zone = try await store.ensurePrivateZone(activityZone.zoneName)
+            let me = try await store.currentUserRecordName()
+            let myRecordName = ParentInfo.recordName(userRecordName: me)
+            let parents = family.parents.filter { $0.recordName != myRecordName }
+            activityShare = try await shareZone(zone, title: "\(family.child.name) – activity", childLookup: childLookup,
+                                                childPermission: .readWrite, parents: parents, store: store)
+        }
+        var urls = [familyURL]
+        if let url = activityShare?.url { urls.append(url) }
+        return try await createInvite(kind: .child, urls: urls, store: store)
     }
 
-    private static func shareFamilyZone(_ zone: ZoneRef, childName: String,
+    /// Shares both of a child's zones and returns their URLs (Family first).
+    private static func shareChildZones(family: ZoneRef, activity: ZoneRef, childName: String,
                                         childLookup: CKUserIdentity.LookupInfo, parents: [ParentInfo],
-                                        store: CloudStore) async throws -> CKShare {
-        let share = try await store.zoneShareOrNew(for: zone, title: "\(childName) – DigitalRewards")
+                                        store: CloudStore) async throws -> [URL] {
+        let familyShare = try await shareZone(family, title: "\(childName) – DigitalRewards", childLookup: childLookup,
+                                              childPermission: .readOnly, parents: parents, store: store)
+        let activityShare = try await shareZone(activity, title: "\(childName) – activity", childLookup: childLookup,
+                                                childPermission: .readWrite, parents: parents, store: store)
+        guard let familyURL = familyShare.url, let activityURL = activityShare.url else {
+            throw CloudStoreError.shareURLMissing
+        }
+        return [familyURL, activityURL]
+    }
+
+    /// Creates or updates a zone-wide share: parents read-write, the child with `childPermission`.
+    private static func shareZone(_ zone: ZoneRef, title: String, childLookup: CKUserIdentity.LookupInfo,
+                                  childPermission: CKShare.ParticipantPermission, parents: [ParentInfo],
+                                  store: CloudStore) async throws -> CKShare {
+        let share = try await store.zoneShareOrNew(for: zone, title: title)
         let present = Set(share.participants.compactMap { CloudStore.key(for: $0) })
 
         var lookups = [childLookup]
@@ -100,7 +139,7 @@ enum FamilyService {
         let found = try await store.participants(for: lookups)
         let childKey = CloudStore.key(for: childLookup)
         for (key, participant) in found {
-            participant.permission = key == childKey ? .readOnly : .readWrite
+            participant.permission = key == childKey ? childPermission : .readWrite
             share.addParticipant(participant)
         }
         if let childKey, !present.contains(childKey), found[childKey] == nil {
@@ -109,8 +148,8 @@ enum FamilyService {
         return try await store.saveShare(share, scope: zone.scope)
     }
 
-    /// Copies a child's family zone from another parent's iCloud into this
-    /// parent's, re-shares it and returns a new code for the child to re-join.
+    /// Copies a child's Family and Activity zones from another parent's iCloud into this
+    /// parent's, re-shares both and returns a new code for the child to re-join.
     static func takeOver(family: FamilySnapshot, childEmail: String?, childPhone: String?,
                          dropPreviousOwner: Bool, me: ParentProfile,
                          store: CloudStore = .shared) async throws -> String {
@@ -126,13 +165,18 @@ enum FamilyService {
             .map { copy($0, to: zone.zoneID) }
         try await store.upsert(copies + [me.parentInfo.makeRecord(zoneID: zone.zoneID)], scope: .privateDB)
 
+        // A child added before activity moved to the parent's iCloud has no Activity zone to copy.
+        let sourceActivity = ChildLocator.activityZone(for: family.zone)
+        let activityRecords = (try? await store.fetchAllRecords(in: sourceActivity)) ?? []
+        let activity = try await store.ensurePrivateZone(sourceActivity.zoneName)
+        try await store.upsert(activityRecords.map { copy($0, to: activity.zoneID) }, scope: .privateDB)
+
         let parents = family.parents.filter {
             $0.recordName != me.parentInfo.recordName && !(dropPreviousOwner && $0.recordName == ownerRecord)
         }
-        let share = try await shareFamilyZone(zone, childName: family.child.name, childLookup: childLookup,
-                                              parents: parents, store: store)
-        guard let url = share.url else { throw CloudStoreError.shareURLMissing }
-        return try await createInvite(kind: .child, urls: [url], store: store)
+        let urls = try await shareChildZones(family: zone, activity: activity, childName: family.child.name,
+                                             childLookup: childLookup, parents: parents, store: store)
+        return try await createInvite(kind: .child, urls: urls, store: store)
     }
 
     private static func copy(_ record: CKRecord, to zoneID: CKRecordZone.ID) -> CKRecord {
@@ -146,9 +190,9 @@ enum FamilyService {
 
     // MARK: Parents
 
-    /// Adds another adult to every family share this parent can change. Returns the
-    /// invite code and the names of children that couldn't be shared (only the
-    /// zone owner can add participants unless CloudKit grants more).
+    /// Adds another adult to every Family and Activity share this parent can change.
+    /// Returns the invite code and the names of children that couldn't be shared (only
+    /// the zone owner can add participants unless CloudKit grants more).
     static func inviteParent(name: String, email: String?, phone: String?, families: [FamilySnapshot],
                              store: CloudStore = .shared) async throws -> (code: String, skipped: [String]) {
         let email = email?.trimmed, phone = phone?.trimmed
@@ -159,23 +203,21 @@ enum FamilyService {
         var skipped: [String] = []
         for family in families {
             do {
-                guard let share = try await store.zoneShare(for: family.zone) else {
+                guard let familyURL = try await addParticipant(lookup, key: key, to: family.zone,
+                                                               who: email ?? phone ?? name, store: store) else {
                     skipped.append(family.child.name)
                     continue
                 }
-                if !share.participants.contains(where: { CloudStore.key(for: $0) == key }) {
-                    // Look up per share: a participant object belongs to one share.
-                    guard let participant = try await store.participants(for: [lookup]).values.first else {
-                        throw CloudStoreError.participantNotFound(email ?? phone ?? name)
-                    }
-                    participant.permission = .readWrite
-                    share.addParticipant(participant)
+                urls.append(familyURL)
+                // Children added before activity moved to the parent's iCloud have no Activity share.
+                let activity = ChildLocator.activityZone(for: family.zone)
+                if let activityURL = try? await addParticipant(lookup, key: key, to: activity,
+                                                               who: email ?? phone ?? name, store: store) {
+                    urls.append(activityURL)
                 }
-                let saved = try await store.saveShare(share, scope: family.zone.scope)
                 let recordName = ParentInfo.pendingRecordName(lookup: email ?? phone ?? name)
                 let parent = ParentInfo(recordName: recordName, displayName: name, lookupEmail: email, lookupPhone: phone)
                 try await store.upsert([parent.makeRecord(zoneID: family.zone.zoneID)], scope: family.zone.scope)
-                if let url = saved.url ?? share.url { urls.append(url) }
             } catch let error as CloudStoreError {
                 throw error
             } catch {
@@ -187,14 +229,36 @@ enum FamilyService {
         return (code, skipped)
     }
 
-    /// Accepts every family share in a parent invite and adds this parent's record.
+    /// Adds a read-write participant to a zone's share. Returns the share URL, or nil
+    /// if the zone has no share.
+    private static func addParticipant(_ lookup: CKUserIdentity.LookupInfo, key: String, to zone: ZoneRef,
+                                       who: String, store: CloudStore) async throws -> URL? {
+        guard let share = try await store.zoneShare(for: zone) else { return nil }
+        if !share.participants.contains(where: { CloudStore.key(for: $0) == key }) {
+            // Look up per share: a participant object belongs to one share.
+            guard let participant = try await store.participants(for: [lookup]).values.first else {
+                throw CloudStoreError.participantNotFound(who)
+            }
+            participant.permission = .readWrite
+            share.addParticipant(participant)
+        }
+        let saved = try await store.saveShare(share, scope: zone.scope)
+        return saved.url ?? share.url
+    }
+
+    /// Accepts every share in a parent invite (each child's Family and Activity zones)
+    /// and adds this parent's record to each family.
     static func joinAsParent(code: String, me: ParentProfile, store: CloudStore = .shared) async throws {
         let invite = try await fetchInvite(code: code, kind: .parent, store: store)
         let shares = try await store.acceptShares(invite.shareURLs)
         for share in shares {
             let zone = ZoneRef(zoneID: share.recordID.zoneID, scope: .sharedDB)
-            if let family = try? await SnapshotLoader.family(zone) {
-                await ensureMyParentRecord(family: family, me: me, store: store)
+            if zone.zoneName.hasPrefix(AppConfig.familyZonePrefix) {
+                if let family = try? await SnapshotLoader.family(zone) {
+                    await ensureMyParentRecord(family: family, me: me, store: store)
+                }
+            } else {
+                try? await SyncEngine.shared.syncZone(zone)
             }
         }
     }
@@ -217,8 +281,7 @@ enum FamilyService {
         }
     }
 
-    /// Removes an adult from every family share and deletes their Parent records.
-    /// Children's apps then drop them from the Activity share.
+    /// Removes an adult from every Family and Activity share and deletes their Parent records.
     static func removeParent(_ parent: ParentInfo, families: [FamilySnapshot],
                              store: CloudStore = .shared) async -> [String] {
         let userRecordName = parent.recordName.hasPrefix("parent-invite-") ? nil
@@ -226,7 +289,15 @@ enum FamilyService {
         var skipped: [String] = []
         for family in families {
             do {
-                if let share = try await store.zoneShare(for: family.zone) {
+                for zone in [family.zone, ChildLocator.activityZone(for: family.zone)] {
+                    let share: CKShare?
+                    if zone == family.zone {
+                        share = try await store.zoneShare(for: zone)
+                    } else {
+                        // Children added before activity moved to the parent's iCloud have no Activity zone.
+                        share = try? await store.zoneShare(for: zone)
+                    }
+                    guard let share else { continue }
                     let matches = share.participants.filter { p in
                         guard p.role != .owner else { return false }
                         if let key = CloudStore.key(for: p), parent.lookupKeys.contains(key) { return true }
@@ -235,7 +306,7 @@ enum FamilyService {
                     }
                     if !matches.isEmpty {
                         matches.forEach(share.removeParticipant)
-                        try await store.saveShare(share, scope: family.zone.scope)
+                        try await store.saveShare(share, scope: zone.scope)
                     }
                 }
                 let ids = family.parents

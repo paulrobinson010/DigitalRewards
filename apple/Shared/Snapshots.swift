@@ -44,10 +44,9 @@ struct FamilySnapshot {
     var childId: String { child.childId }
 }
 
-/// Everything in a child's `Activity` zone.
+/// Everything in a child's `Activity-<childId>` zone.
 struct ActivitySnapshot {
     var zone: ZoneRef
-    var link: LinkInfo?
     var sessions: [SessionInfo] = []
     var spends: [SpendInfo] = []
     var devices: [DeviceInfo] = []
@@ -56,7 +55,6 @@ struct ActivitySnapshot {
         self.zone = zone
         for r in records {
             switch r.recordType {
-            case RecordType.link: link = LinkInfo(record: r)
             case RecordType.session: if let v = SessionInfo(record: r) { sessions.append(v) }
             case RecordType.spend: if let v = SpendInfo(record: r) { spends.append(v) }
             case RecordType.device: if let v = DeviceInfo(record: r) { devices.append(v) }
@@ -66,6 +64,9 @@ struct ActivitySnapshot {
     }
 
     static func empty(_ zone: ZoneRef) -> ActivitySnapshot { ActivitySnapshot(zone: zone, records: []) }
+
+    /// True once any device has written here, i.e. the child has joined.
+    var hasData: Bool { !devices.isEmpty || !sessions.isEmpty || !spends.isEmpty }
 }
 
 /// A child's family + activity data with the balance worked out.

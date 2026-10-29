@@ -4,12 +4,14 @@ import Foundation
 enum AppConfig {
     static let containerIdentifier = "iCloud.com.digitalrewards.app"
 
-    /// Zone names (docs/CONTRACT.md §5).
+    /// Zone names (docs/CONTRACT.md §6). Both child zones live in the iCloud of the
+    /// parent who added the child.
     static let familyZonePrefix = "Family-"
-    static let activityZoneName = "Activity"
+    static let activityZonePrefix = "Activity-"
     static let prefsZoneName = "Prefs"
 
     static func familyZoneName(childId: String) -> String { familyZonePrefix + childId }
+    static func activityZoneName(childId: String) -> String { activityZonePrefix + childId }
 
     static let inviteLifetime: TimeInterval = 7 * 24 * 3600
     static let samplesPerMinute = 12

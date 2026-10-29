@@ -52,12 +52,6 @@ struct AllowListInfo: Codable, Hashable, Sendable {
     var executables: [String]
 }
 
-struct LinkInfo: Codable, Hashable, Sendable {
-    var childId: String
-    var familyZoneName: String
-    var familyZoneOwner: String
-}
-
 struct SessionInfo: Codable, Hashable, Sendable, Identifiable {
     var id: String          // recordName "session-<uuid>"
     var activityType: ActivityType

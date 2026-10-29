@@ -5,9 +5,6 @@ import Foundation
 enum ChildLocator {
     private static let preferredKey = "dr.child.familyZone"
 
-    /// The child's own Activity zone (private database).
-    static var activityZone: ZoneRef { .privateZone(AppConfig.activityZoneName) }
-
     /// The family zone the child last joined, if remembered on this device.
     static var preferredFamilyZone: ZoneRef? {
         get {
@@ -35,5 +32,13 @@ enum ChildLocator {
             return preferred
         }
         return zones.first
+    }
+
+    /// The `Activity-<childId>` zone that pairs with a `Family-<childId>` zone: same
+    /// child id, same owner, same database.
+    static func activityZone(for family: ZoneRef) -> ZoneRef {
+        let childId = String(family.zoneName.dropFirst(AppConfig.familyZonePrefix.count))
+        let id = CKRecordZone.ID(zoneName: AppConfig.activityZoneName(childId: childId), ownerName: family.ownerName)
+        return ZoneRef(zoneID: id, scope: family.scope)
     }
 }

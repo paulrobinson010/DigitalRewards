@@ -24,7 +24,7 @@ struct ChildDetailView: View {
             }
             if !entry.hasActivity {
                 Section {
-                    Text("\(entry.state.name) hasn't joined yet, or their iPhone hasn't shared their activity with you. Pull to refresh after they join.")
+                    Text("\(entry.state.name) hasn't joined yet. Send them a code, then pull to refresh once they've entered it.")
                         .font(.footnote)
                     Button("New invite code for \(entry.state.name)") {
                         Task { await makeCode(entry) }

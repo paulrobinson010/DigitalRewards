@@ -31,7 +31,6 @@ enum SchemaSeeder {
             make("RulesChange", zoneID, ["summary": "seed", "note": "seed", "at": now, "byParent": "Seed"]),
             make("Parent", zoneID, ["displayName": "Seed", "lookupEmail": "seed@example.com", "lookupPhone": "+440000000000"]),
             make("AllowList", zoneID, ["executables": "[]"]),
-            make("Link", zoneID, ["childId": "seed", "familyZoneName": "seed", "familyZoneOwner": "seed"]),
             make("Session", zoneID, ["activityType": "walk", "startedAt": now, "endedAt": now, "minutes": "[]",
                                      "qualifyingMinutes": 0, "earnedMinutes": 0, "rulesSnapshot": "{}",
                                      "deviceId": "seed"]),
@@ -41,7 +40,6 @@ enum SchemaSeeder {
         ]
         let publicRecords: [CKRecord] = [
             make("Invite", nil, ["kind": "child", "shareURLs": "[]", "expiresAt": now], name: "schema-seed-invite"),
-            make("ShareLink", nil, ["shareURL": "https://www.icloud.com/"], name: "schema-seed-sharelink"),
         ]
 
         try await save(privateRecords, in: privateDB)

@@ -30,19 +30,27 @@ final class SessionUploader {
         guard !isFlushing, !pending.isEmpty else { return }
         isFlushing = true
         defer { isFlushing = false }
-        let zoneID = ChildLocator.activityZone.zoneID
+        // Sessions go to the child's Activity zone in the parent's iCloud (shared database).
+        var familyZone = await ChildLocator.findFamilyZone()
+        if familyZone == nil { familyZone = WatchStore.shared.context?.familyZone }
+        guard let family = familyZone else {
+            lastError = "Join your family in DigitalRewards on your iPhone first."
+            return
+        }
+        let zone = ChildLocator.activityZone(for: family)
+        let zoneID = zone.zoneID
         for session in pending {
             let device = DeviceInfo(deviceId: DeviceIdentity.id, kind: .watch,
                                     name: WKInterfaceDevice.current().name,
                                     lastSeenAt: Date(), detectedApps: nil)
             do {
                 try await CloudStore.shared.upsert([session.makeRecord(zoneID: zoneID), device.makeRecord(zoneID: zoneID)],
-                                                   scope: .privateDB)
+                                                   scope: zone.scope)
                 pending.removeAll { $0.id == session.id }
                 persist()
                 lastError = nil
             } catch {
-                // Typically offline, or the iPhone hasn't created the Activity zone yet. Retry later.
+                // Typically offline. Retry later.
                 lastError = error.userMessage
                 break
             }

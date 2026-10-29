@@ -64,8 +64,11 @@ has these types:
 
 | Database | Record types |
 |----------|--------------|
-| Private / shared (custom zones) | `Child`, `Rules`, `Adjustment`, `SessionOverride`, `Bonus`, `RulesChange`, `Parent`, `AllowList`, `Link`, `Session`, `Spend`, `Device`, `AlertPrefs` |
-| Public | `Invite`, `ShareLink` |
+| Private / shared (custom zones) | `Child`, `Rules`, `Adjustment`, `SessionOverride`, `Bonus`, `RulesChange`, `Parent`, `AllowList`, `Session`, `Spend`, `Device`, `AlertPrefs` |
+| Public | `Invite` |
+
+`Link` and `ShareLink` were used by an earlier design. If they're already in your Production schema,
+leave them: CloudKit can't remove types, and nothing uses them now.
 
 Fields are listed in `docs/CONTRACT.md` §6. `Spend` and the `detectedApps` field on `Device` are
 written by the Windows app: run it once against Development, or add them by hand in the Console.
@@ -82,21 +85,28 @@ Production builds can't create record types.
 ## How it fits together
 
 ```
-Parent iPhone (owns Family-<childId> zone) ──share rw──▶ other parents
-                                         └─share ro──▶ child
-Child iPhone  (owns Activity zone)       ──share ro──▶ every parent
-Apple Watch   (child's Apple ID) writes Session ─▶ child's Activity zone
-Windows PC    (child's Apple ID) writes Spend/Device ─▶ child's Activity zone
+Parent iPhone (owns Family-<childId>)   ──share rw──▶ other parents
+                                        └─share ro──▶ child
+              (owns Activity-<childId>) ──share rw──▶ other parents and the child
+Apple Watch   (child's Apple ID) writes Session      ─▶ Activity-<childId> (shared DB)
+Child iPhone  (child's Apple ID) writes Device       ─▶ Activity-<childId> (shared DB)
+Windows PC    (child's Apple ID) writes Spend/Device ─▶ Activity-<childId> (shared DB)
 ```
 
-- **Add child** (Parent mode): creates the family zone, shares it, and shows a 6-digit code. The code is an
-  `Invite` record in the public DB holding the share URL; only invited Apple IDs can accept it.
-- **Join** (Child mode): enter the code. The app accepts the family share, creates the `Activity`
-  zone, shares it read-only with every parent and publishes the share URL as `ShareLink`. Parents'
-  apps accept it automatically on their next refresh.
-- **Invite parent**: adds them read-write to every family share you're allowed to change, writes a
-  placeholder `Parent` record (`parent-invite-…`) and gives a code. When they join, their app
-  replaces it with `parent-<their user record name>`, and children's apps add them to the Activity share.
+Everything lives in the iCloud of the parent who added the child, so nothing uses the child's
+iCloud storage.
+
+- **Add child** (Parent mode): creates both zones, shares them, and shows a 6-digit code. The code is an
+  `Invite` record in the public DB holding both share URLs; only invited Apple IDs can accept them.
+- **Join** (Child mode): enter the code. The app accepts both shares; it creates nothing itself.
+  A child shows as "waiting to join" for parents until one of their devices writes to the Activity zone
+  (the iPhone app writes a `Device` record on its first refresh).
+- **Invite parent**: adds them read-write to every Family and Activity share you're allowed to change,
+  writes a placeholder `Parent` record (`parent-invite-…`) and gives a code. When they join, their app
+  accepts every share and replaces the placeholder with `parent-<their user record name>`.
+- **Older children** (added before activity moved to the parent's iCloud) have no Activity zone. Open
+  the child in Parent mode and tap **New invite code**: that creates and shares the zone, and the child
+  enters the new code.
 - **Balance** is computed on each device with `RewardsCore` (contract §3–5). The child sees every parent action
   with name and note: adjustments, edited/voided workouts (original struck through), bonuses (and a
   "2× bonus" badge on boosted workouts), and rules changes with a diff summary.
