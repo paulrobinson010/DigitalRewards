@@ -21,11 +21,12 @@ All data is in the family's iCloud (CloudKit). There's no server.
 
 ## First-time setup
 
-1. Edit `project.yml`:
-   - `DEVELOPMENT_TEAM`: your Team ID.
-   - If `com.digitalrewards.app` is taken, change the bundle IDs (iOS app, watch app
-     `…watchkitapp`, `WKCompanionAppBundleIdentifier`), the BGTask identifier, and the iCloud
-     container everywhere it appears. The container is also in `Shared/AppConfig.swift`.
+1. `project.yml` sets `DEVELOPMENT_TEAM` and `APP_BUNDLE_ID` (the iPhone app's bundle ID).
+   The watch app's ID (`$(APP_BUNDLE_ID).watchkitapp`) and `WKCompanionAppBundleIdentifier`
+   are derived from it. Change bundle IDs **only here**, not in Xcode: `xcodegen generate`
+   overwrites Xcode edits, and the watch ID must start with the iPhone app's ID or
+   App Store validation fails. The iCloud container is set separately in
+   `project.yml` (entitlements) and `Shared/AppConfig.swift`.
 2. `cd apple && xcodegen generate && open DigitalRewards.xcodeproj`
 3. In the Apple Developer portal, Xcode's automatic signing usually does this for you, but check:
    - **iCloud** with CloudKit and container `iCloud.com.digitalrewards.app`, on both App IDs.
@@ -38,6 +39,21 @@ All data is in the family's iCloud (CloudKit). There's no server.
 If the watch app doesn't end up inside the iOS app (XcodeGen versions differ on embedding
 single-target watch apps), add it under the iOS target › Build Phases › **Embed Watch Content**,
 destination "Products Directory", subpath `$(CONTENTS_FOLDER_PATH)/Watch`.
+
+## Distributing (TestFlight / App Store)
+
+1. **Create the app record yourself** in App Store Connect (Apps › + › New App): platform iOS,
+   bundle ID `com.paulrobinson.digitalrewards.app`, SKU anything. The app **name must be
+   unique across the whole App Store**. "DigitalRewards" is probably taken, which is the usual reason
+   Xcode's "create app record" step fails. Pick something like "DigitalRewards Family".
+   Creating records also needs the **Account Holder, Admin or App Manager** role and a signed
+   Paid Apps / Free Apps agreement (App Store Connect › Business).
+2. **Deploy the CloudKit schema to Production** (below) before testers use a TestFlight build.
+   TestFlight and App Store builds talk to the Production environment.
+3. Product › Archive, then Distribute App › App Store Connect.
+
+App icons come from `iOS/Assets.xcassets` and `Watch/Assets.xcassets` (one 1024×1024 image each),
+drawn by `tools/make_icon.py`. Replace `AppIcon.png` in both with a real design whenever you like.
 
 ## CloudKit schema
 
