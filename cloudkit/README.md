@@ -2,7 +2,17 @@
 
 `schema.ckdb` defines every record type and field the apps use (see `docs/CONTRACT.md` §6).
 TestFlight and App Store builds run against the **Production** environment, which can't create
-record types on the fly. Load the schema into **Development** and deploy it from there:
+record types on the fly. Get the types into **Development**, then deploy them.
+
+## Easiest: from the app
+
+1. Run the iPhone app from Xcode (Debug build, so it uses Development) and pick Parent mode.
+2. Tap ⋯ › **Create CloudKit schema**. It saves one sample record of every type, then deletes them;
+   the types and fields stay. The menu item only exists in debug builds.
+3. In the [CloudKit Console](https://icloud.developer.apple.com/), open the container and use
+   **Deploy Schema Changes** to Production.
+
+## Alternative: cktool
 
 ```sh
 # Once: create a management token in the CloudKit Console (account menu → Manage Tokens),

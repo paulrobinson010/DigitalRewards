@@ -23,6 +23,7 @@ struct ParentHomeView: View {
     @Environment(ParentModel.self) private var model
     @State private var showAddChild = false
     @State private var showParents = false
+    @State private var schemaMessage: String?
 
     var body: some View {
         List {
@@ -57,6 +58,19 @@ struct ParentHomeView: View {
                 Menu {
                     Button("Parents", systemImage: "person.2") { showParents = true }
                     SwitchModeButton()
+                    #if DEBUG
+                    Button("Create CloudKit schema", systemImage: "hammer") {
+                        Task {
+                            do {
+                                try await SchemaSeeder.run()
+                                schemaMessage = "All record types now exist in the Development schema. "
+                                    + "Deploy them to Production in the CloudKit Console."
+                            } catch {
+                                schemaMessage = error.localizedDescription
+                            }
+                        }
+                    }
+                    #endif
                 } label: {
                     Image(systemName: "ellipsis.circle")
                 }
@@ -67,6 +81,12 @@ struct ParentHomeView: View {
         }
         .sheet(isPresented: $showParents) {
             NavigationStack { ParentsView() }
+        }
+        .alert("CloudKit schema", isPresented: Binding(get: { schemaMessage != nil },
+                                                       set: { if !$0 { schemaMessage = nil } })) {
+            Button("OK") { schemaMessage = nil }
+        } message: {
+            Text(schemaMessage ?? "")
         }
     }
 }
