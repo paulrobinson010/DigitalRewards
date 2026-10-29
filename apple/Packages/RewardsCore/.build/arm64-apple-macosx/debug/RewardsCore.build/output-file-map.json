@@ -1,0 +1,47 @@
+{
+  "": {
+    "swift-dependencies": "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/primary.swiftdeps"
+  },
+  "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/Sources/RewardsCore/EarnResolution.swift": {
+    "dependencies": "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/EarnResolution.d",
+    "object": "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/EarnResolution.swift.o",
+    "swiftmodule": "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/EarnResolution~partial.swiftmodule",
+    "swift-dependencies": "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/EarnResolution.swiftdeps",
+    "diagnostics": "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/EarnResolution.dia"
+  },
+  "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/Sources/RewardsCore/Ledger.swift": {
+    "dependencies": "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/Ledger.d",
+    "object": "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/Ledger.swift.o",
+    "swiftmodule": "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/Ledger~partial.swiftmodule",
+    "swift-dependencies": "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/Ledger.swiftdeps",
+    "diagnostics": "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/Ledger.dia"
+  },
+  "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/Sources/RewardsCore/PlayStatus.swift": {
+    "dependencies": "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/PlayStatus.d",
+    "object": "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/PlayStatus.swift.o",
+    "swiftmodule": "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/PlayStatus~partial.swiftmodule",
+    "swift-dependencies": "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/PlayStatus.swiftdeps",
+    "diagnostics": "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/PlayStatus.dia"
+  },
+  "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/Sources/RewardsCore/Qualification.swift": {
+    "dependencies": "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/Qualification.d",
+    "object": "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/Qualification.swift.o",
+    "swiftmodule": "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/Qualification~partial.swiftmodule",
+    "swift-dependencies": "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/Qualification.swiftdeps",
+    "diagnostics": "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/Qualification.dia"
+  },
+  "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/Sources/RewardsCore/Rules.swift": {
+    "dependencies": "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/Rules.d",
+    "object": "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/Rules.swift.o",
+    "swiftmodule": "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/Rules~partial.swiftmodule",
+    "swift-dependencies": "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/Rules.swiftdeps",
+    "diagnostics": "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/Rules.dia"
+  },
+  "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/Sources/RewardsCore/RulesDiff.swift": {
+    "dependencies": "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/RulesDiff.d",
+    "object": "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/RulesDiff.swift.o",
+    "swiftmodule": "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/RulesDiff~partial.swiftmodule",
+    "swift-dependencies": "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/RulesDiff.swiftdeps",
+    "diagnostics": "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/RulesDiff.dia"
+  }
+}

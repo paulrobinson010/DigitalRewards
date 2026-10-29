@@ -10,7 +10,7 @@ options:
 
 settings:
   base:
-    DEVELOPMENT_TEAM: ""          # <- your Apple Developer Team ID
+    DEVELOPMENT_TEAM: "UPF9A27355"          # <- your Apple Developer Team ID
     SWIFT_VERSION: "5.0"
     MARKETING_VERSION: "0.1.0"
     CURRENT_PROJECT_VERSION: "1"

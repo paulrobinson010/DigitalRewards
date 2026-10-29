@@ -1,0 +1,703 @@
+{
+  "builtTestProducts" : [
+    {
+      "binaryPath" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCorePackageTests.xctest/Contents/MacOS/RewardsCorePackageTests",
+      "packagePath" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore",
+      "productName" : "RewardsCorePackageTests"
+    }
+  ],
+  "copyCommands" : {
+
+  },
+  "explicitTargetDependencyImportCheckingMode" : {
+    "none" : {
+
+    }
+  },
+  "generatedSourceTargetSet" : [
+
+  ],
+  "pluginDescriptions" : [
+
+  ],
+  "swiftCommands" : {
+    "C.RewardsCore-arm64-apple-macosx-debug.module" : {
+      "executable" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "fileList" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/sources",
+      "importPath" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/Sources/RewardsCore/EarnResolution.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/Sources/RewardsCore/Ledger.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/Sources/RewardsCore/PlayStatus.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/Sources/RewardsCore/Qualification.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/Sources/RewardsCore/Rules.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/Sources/RewardsCore/RulesDiff.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/sources"
+        }
+      ],
+      "isLibrary" : true,
+      "moduleName" : "RewardsCore",
+      "moduleOutputPath" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/Modules/RewardsCore.swiftmodule",
+      "objects" : [
+        "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/EarnResolution.swift.o",
+        "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/Ledger.swift.o",
+        "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/PlayStatus.swift.o",
+        "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/Qualification.swift.o",
+        "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/Rules.swift.o",
+        "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/RulesDiff.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx14.0",
+        "-incremental",
+        "-enable-batch-mode",
+        "-serialize-diagnostics",
+        "-index-store-path",
+        "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/index/store",
+        "-Onone",
+        "-enable-testing",
+        "-j10",
+        "-DSWIFT_PACKAGE",
+        "-DDEBUG",
+        "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+        "-module-cache-path",
+        "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/ModuleCache",
+        "-parseable-output",
+        "-parse-as-library",
+        "-emit-objc-header",
+        "-emit-objc-header-path",
+        "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/include/RewardsCore-Swift.h",
+        "-color-diagnostics",
+        "-swift-version",
+        "5",
+        "-plugin-path",
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+        "-sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-I",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-L",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "rewardscore"
+      ],
+      "outputFileMapPath" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/EarnResolution.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/Ledger.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/PlayStatus.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/Qualification.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/Rules.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/RulesDiff.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/Modules/RewardsCore.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/Sources/RewardsCore/EarnResolution.swift",
+        "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/Sources/RewardsCore/Ledger.swift",
+        "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/Sources/RewardsCore/PlayStatus.swift",
+        "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/Sources/RewardsCore/Qualification.swift",
+        "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/Sources/RewardsCore/Rules.swift",
+        "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/Sources/RewardsCore/RulesDiff.swift"
+      ],
+      "tempsPath" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build",
+      "wholeModuleOptimization" : false
+    },
+    "C.RewardsCorePackageTests-arm64-apple-macosx-debug.module" : {
+      "executable" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "fileList" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCorePackageTests.build/sources",
+      "importPath" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCorePackageTests.derived/runner.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/Modules/RewardsCoreTests.swiftmodule"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCorePackageTests.build/sources"
+        }
+      ],
+      "isLibrary" : true,
+      "moduleName" : "RewardsCorePackageTests",
+      "moduleOutputPath" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/Modules/RewardsCorePackageTests.swiftmodule",
+      "objects" : [
+        "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCorePackageTests.build/runner.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx14.0",
+        "-incremental",
+        "-enable-batch-mode",
+        "-serialize-diagnostics",
+        "-index-store-path",
+        "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/index/store",
+        "-Onone",
+        "-enable-testing",
+        "-Xfrontend",
+        "-enable-cross-import-overlays",
+        "-j10",
+        "-DSWIFT_PACKAGE",
+        "-DDEBUG",
+        "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+        "-module-cache-path",
+        "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/ModuleCache",
+        "-parseable-output",
+        "-parse-as-library",
+        "-emit-objc-header",
+        "-emit-objc-header-path",
+        "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCorePackageTests.build/include/RewardsCorePackageTests-Swift.h",
+        "-color-diagnostics",
+        "-plugin-path",
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+        "-sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-I",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-L",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "rewardscore"
+      ],
+      "outputFileMapPath" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCorePackageTests.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCorePackageTests.build/runner.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/Modules/RewardsCorePackageTests.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCorePackageTests.derived/runner.swift"
+      ],
+      "tempsPath" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCorePackageTests.build",
+      "wholeModuleOptimization" : false
+    },
+    "C.RewardsCoreTests-arm64-apple-macosx-debug.module" : {
+      "executable" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "fileList" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCoreTests.build/sources",
+      "importPath" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/Tests/RewardsCoreTests/VectorTests.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/Modules/RewardsCore.swiftmodule"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCoreTests.build/sources"
+        }
+      ],
+      "isLibrary" : true,
+      "moduleName" : "RewardsCoreTests",
+      "moduleOutputPath" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/Modules/RewardsCoreTests.swiftmodule",
+      "objects" : [
+        "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCoreTests.build/VectorTests.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx14.0",
+        "-incremental",
+        "-enable-batch-mode",
+        "-serialize-diagnostics",
+        "-index-store-path",
+        "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/index/store",
+        "-Onone",
+        "-enable-testing",
+        "-Xfrontend",
+        "-enable-cross-import-overlays",
+        "-j10",
+        "-DSWIFT_PACKAGE",
+        "-DDEBUG",
+        "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+        "-module-cache-path",
+        "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/ModuleCache",
+        "-parseable-output",
+        "-parse-as-library",
+        "-color-diagnostics",
+        "-swift-version",
+        "5",
+        "-plugin-path",
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+        "-sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-I",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-L",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "rewardscore"
+      ],
+      "outputFileMapPath" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCoreTests.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCoreTests.build/VectorTests.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/Modules/RewardsCoreTests.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/Tests/RewardsCoreTests/VectorTests.swift"
+      ],
+      "tempsPath" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCoreTests.build",
+      "wholeModuleOptimization" : false
+    }
+  },
+  "swiftFrontendCommands" : {
+
+  },
+  "swiftTargetScanArgs" : {
+    "RewardsCore" : [
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "-module-name",
+      "RewardsCore",
+      "-package-name",
+      "rewardscore",
+      "-c",
+      "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/Sources/RewardsCore/EarnResolution.swift",
+      "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/Sources/RewardsCore/Ledger.swift",
+      "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/Sources/RewardsCore/PlayStatus.swift",
+      "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/Sources/RewardsCore/Qualification.swift",
+      "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/Sources/RewardsCore/Rules.swift",
+      "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/Sources/RewardsCore/RulesDiff.swift",
+      "-I",
+      "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/Modules",
+      "-target",
+      "arm64-apple-macosx14.0",
+      "-incremental",
+      "-enable-batch-mode",
+      "-serialize-diagnostics",
+      "-index-store-path",
+      "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/index/store",
+      "-Onone",
+      "-enable-testing",
+      "-j10",
+      "-DSWIFT_PACKAGE",
+      "-DDEBUG",
+      "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+      "-module-cache-path",
+      "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/ModuleCache",
+      "-parseable-output",
+      "-parse-as-library",
+      "-emit-objc-header",
+      "-emit-objc-header-path",
+      "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/include/RewardsCore-Swift.h",
+      "-color-diagnostics",
+      "-swift-version",
+      "5",
+      "-plugin-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+      "-sdk",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-I",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-L",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "rewardscore",
+      "-driver-use-frontend-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+    ],
+    "RewardsCorePackageTests" : [
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "-module-name",
+      "RewardsCorePackageTests",
+      "-package-name",
+      "rewardscore",
+      "-c",
+      "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCorePackageTests.derived/runner.swift",
+      "-I",
+      "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/Modules",
+      "-target",
+      "arm64-apple-macosx14.0",
+      "-incremental",
+      "-enable-batch-mode",
+      "-serialize-diagnostics",
+      "-index-store-path",
+      "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/index/store",
+      "-Onone",
+      "-enable-testing",
+      "-Xfrontend",
+      "-enable-cross-import-overlays",
+      "-j10",
+      "-DSWIFT_PACKAGE",
+      "-DDEBUG",
+      "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+      "-module-cache-path",
+      "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/ModuleCache",
+      "-parseable-output",
+      "-parse-as-library",
+      "-emit-objc-header",
+      "-emit-objc-header-path",
+      "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCorePackageTests.build/include/RewardsCorePackageTests-Swift.h",
+      "-color-diagnostics",
+      "-plugin-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+      "-sdk",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-I",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-L",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "rewardscore",
+      "-driver-use-frontend-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+    ],
+    "RewardsCoreTests" : [
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "-module-name",
+      "RewardsCoreTests",
+      "-package-name",
+      "rewardscore",
+      "-c",
+      "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/Tests/RewardsCoreTests/VectorTests.swift",
+      "-I",
+      "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/Modules",
+      "-target",
+      "arm64-apple-macosx14.0",
+      "-incremental",
+      "-enable-batch-mode",
+      "-serialize-diagnostics",
+      "-index-store-path",
+      "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/index/store",
+      "-Onone",
+      "-enable-testing",
+      "-Xfrontend",
+      "-enable-cross-import-overlays",
+      "-j10",
+      "-DSWIFT_PACKAGE",
+      "-DDEBUG",
+      "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+      "-module-cache-path",
+      "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/ModuleCache",
+      "-parseable-output",
+      "-parse-as-library",
+      "-color-diagnostics",
+      "-swift-version",
+      "5",
+      "-plugin-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+      "-sdk",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-I",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-L",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.5.sdk",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "rewardscore",
+      "-driver-use-frontend-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+    ]
+  },
+  "targetDependencyMap" : {
+    "RewardsCore" : [
+
+    ],
+    "RewardsCorePackageTests" : [
+      "RewardsCoreTests",
+      "RewardsCore"
+    ],
+    "RewardsCoreTests" : [
+      "RewardsCore"
+    ]
+  },
+  "testDiscoveryCommands" : {
+
+  },
+  "testEntryPointCommands" : {
+    "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCorePackageTests.derived/runner.swift" : {
+      "inputs" : [
+
+      ],
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCorePackageTests.derived/runner.swift"
+        }
+      ]
+    }
+  },
+  "traitConfiguration" : {
+    "default" : {
+
+    }
+  },
+  "writeCommands" : {
+    "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/Sources/RewardsCore/EarnResolution.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/Sources/RewardsCore/Ledger.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/Sources/RewardsCore/PlayStatus.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/Sources/RewardsCore/Qualification.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/Sources/RewardsCore/Rules.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/Sources/RewardsCore/RulesDiff.swift"
+        }
+      ],
+      "outputFilePath" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/sources"
+    },
+    "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCorePackageTests.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCorePackageTests.derived/runner.swift"
+        }
+      ],
+      "outputFilePath" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCorePackageTests.build/sources"
+    },
+    "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCorePackageTests.product/Objects.LinkFileList" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<link-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/EarnResolution.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/Ledger.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/PlayStatus.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/Qualification.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/Rules.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCore.build/RulesDiff.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCorePackageTests.build/runner.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCoreTests.build/VectorTests.swift.o"
+        }
+      ],
+      "outputFilePath" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCorePackageTests.product/Objects.LinkFileList"
+    },
+    "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCoreTests.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/Tests/RewardsCoreTests/VectorTests.swift"
+        }
+      ],
+      "outputFilePath" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCoreTests.build/sources"
+    },
+    "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt" : {
+      "alwaysOutOfDate" : true,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<swift-get-version>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+        }
+      ],
+      "outputFilePath" : "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+    }
+  }
+}

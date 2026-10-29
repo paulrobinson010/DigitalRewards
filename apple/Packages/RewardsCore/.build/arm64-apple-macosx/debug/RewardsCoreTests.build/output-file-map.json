@@ -1,0 +1,12 @@
+{
+  "": {
+    "swift-dependencies": "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCoreTests.build/primary.swiftdeps"
+  },
+  "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/Tests/RewardsCoreTests/VectorTests.swift": {
+    "dependencies": "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCoreTests.build/VectorTests.d",
+    "object": "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCoreTests.build/VectorTests.swift.o",
+    "swiftmodule": "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCoreTests.build/VectorTests~partial.swiftmodule",
+    "swift-dependencies": "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCoreTests.build/VectorTests.swiftdeps",
+    "diagnostics": "/Users/paulrobinson/Documents/GitHub/DigitalRewards/apple/Packages/RewardsCore/.build/arm64-apple-macosx/debug/RewardsCoreTests.build/VectorTests.dia"
+  }
+}
