@@ -68,7 +68,12 @@ dotnet test DigitalRewards.sln
    (default `iCloud.com.digitalrewards.app`; it must match `AppConfig.swift`).
 2. **API Access → Tokens → New token**:
    - Name: `Windows enforcer`
-   - Sign in callback: **URL Redirect**, `http://localhost:43117/ck-callback`
+   - Sign in callback: **URL Redirect**, `https://paulrobinson010.github.io/DigitalRewards/ck-callback/`.
+     Production only accepts https, so this GitHub Pages page (`site/ck-callback/`, published by the
+     **Sign-in page** workflow) forwards the token to the tray app on `http://localhost:43117/ck-callback`.
+     Turn Pages on once: repository Settings → Pages → Source: **GitHub Actions**. (Development tokens
+     may also use `http://localhost:43117/ck-callback` directly.) GitHub Pages on a private repository
+     needs a paid GitHub plan; otherwise host `site/` on any static https host and use that URL.
    - Copy the token; it goes into the `CLOUDKIT_API_TOKEN` GitHub secret (or `Install.ps1 -ApiToken`).
 3. Make sure the schema from `docs/CONTRACT.md` §6 is deployed to the environment you use
    (`development` while testing, `production` for App Store builds). The enforcer reads with
@@ -113,7 +118,7 @@ restart on failure) and starts it. `Uninstall.ps1 [-RemoveData]` removes it.
 1. Make sure the child's Windows account is a **standard user**: Settings → Accounts → Family & other users.
 2. The child logs in. The DigitalRewards icon appears in the tray (grey `?`).
 3. Right-click it → **Sign in to iCloud…**. The browser opens Apple's sign-in page; the child signs in
-   with **their own** Apple ID. Apple redirects to `http://localhost:43117/ck-callback`, the tray hands the token to
+   with **their own** Apple ID. Apple redirects to the sign-in page, which forwards to `http://localhost:43117/ck-callback`; the tray hands the token to
    the service, and the icon turns green with the minutes left.
 
 Windows accounts that never sign in aren't restricted, so give parents and guests their own accounts.
