@@ -117,7 +117,9 @@ actor SyncEngine {
             // No usable database token: every zone is a candidate (each still
             // fetches incrementally from its own token), and zones that no longer
             // exist are forgotten.
-            let all = try await store.allZones(scope).map { Self.normalized(ZoneRef(zoneID: $0.zoneID, scope: scope)) }
+            let all = try await store.allZones(scope)
+                .map { Self.normalized(ZoneRef(zoneID: $0.zoneID, scope: scope)) }
+                .filter(Self.isMirrorable)
             for zone in index(scope).zones where !all.contains(zone) {
                 drop(zone)
             }
@@ -133,7 +135,7 @@ actor SyncEngine {
         }
 
         var firstError: Error?
-        for zone in toFetch where !delta.deleted.contains(zone) {
+        for zone in toFetch where !delta.deleted.contains(zone) && Self.isMirrorable(zone) {
             do {
                 try await fetchChanges(zone)
                 track(zone)
@@ -173,6 +175,7 @@ actor SyncEngine {
             }
             for id in page.changedZoneIDs {
                 let zone = Self.normalized(ZoneRef(zoneID: id, scope: scope))
+                guard Self.isMirrorable(zone) else { continue }
                 delta.deleted.removeAll { $0 == zone }
                 if !delta.changed.contains(zone) { delta.changed.append(zone) }
             }
@@ -301,6 +304,12 @@ actor SyncEngine {
         change(&value)
         indexes[scope] = value
         _ = write(value, to: indexURL(scope))
+    }
+
+    /// The default zone doesn't support change fetches ("AppDefaultZone does not
+    /// support getChanges call"), and the apps keep nothing in it, so it's never mirrored.
+    private static func isMirrorable(_ zone: ZoneRef) -> Bool {
+        zone.zoneName != CKRecordZone.ID.defaultZoneName
     }
 
     private func isTracked(_ zone: ZoneRef) -> Bool {
