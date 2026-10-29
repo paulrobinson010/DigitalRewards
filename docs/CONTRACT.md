@@ -99,11 +99,21 @@ Inputs: rules, child `timeZone` (IANA), `now` (instant), `balance`, and spend en
 | Zone name | Database (owner's view) | Owner | Shared with |
 |-----------|------------------------|-------|-------------|
 | `Family-<childId>` | private | parent who added the child | other parents: read-write; child: read-only |
-| `Activity` | private | child | all parents: read-only |
+| `Activity-<childId>` | private | the **same parent** who owns `Family-<childId>` | other parents: read-write; that child: **read-write** |
 | `Prefs` | private | each parent | — |
-| `_defaultZone` | **public** | — | readable by every app user; used only for invite codes and share links |
+| `_defaultZone` | **public** | — | readable by every app user; used only for invite codes |
 
 `childId` is a lowercase UUID string.
+
+**Everything lives in a parent's iCloud.** Children never own zones, so nothing counts against
+a child's iCloud storage. Each child has two zones owned by the parent who added them, each with
+its own zone-wide `CKShare` (`publicPermission = .none`). The `Family` share gives the child
+read-only access and the `Activity` share gives them read-write. Other parents are read-write
+participants on both. Storage counts against the owning parent's iCloud.
+
+Devices find a child's zones by name: `Family-<childId>` and `Activity-<childId>` share the same
+`childId` and owner. A child device (iPhone, watch, Windows) sees exactly one `Family-*` and one
+`Activity-*` zone in its **shared** database.
 
 ### Record types and fields
 
@@ -122,11 +132,10 @@ All timestamps are CloudKit `TIMESTAMP` (epoch ms in the REST API). JSON fields 
 | `Parent` | `parent-<userRecordName>` | `displayName` STRING, `lookupEmail` STRING? , `lookupPhone` STRING? |
 | `AllowList` | `allow-<deviceId>` | `executables` STRING (JSON array of lowercase exe file names, e.g. `["winword.exe"]`) |
 
-**Activity zone** (child-owned)
+**Activity zone** (`Activity-<childId>`, parent-owned, child read-write)
 
 | Type | recordName | Fields |
 |------|-----------|--------|
-| `Link` | `link` | `childId` STRING, `familyZoneName` STRING, `familyZoneOwner` STRING |
 | `Session` | `session-<uuid>` | `activityType` STRING, `startedAt` TIMESTAMP, `endedAt` TIMESTAMP, `minutes` STRING (JSON `[{"p":int,"t":int,"hr":double?,"cad":double?}]`, `hr`/`cad` are averages for display), `qualifyingMinutes` INT64, `earnedMinutes` INT64, `rulesSnapshot` STRING (JSON Rules), `deviceId` STRING |
 | `Spend` | `spend-<deviceId>-<yyyyMMddHHmm UTC of minute start>` | `minutes` INT64, `at` TIMESTAMP (minute start), `deviceId` STRING, `app` STRING |
 | `Device` | `device-<deviceId>` | `kind` STRING (`watch`/`ios`/`windows`), `name` STRING, `lastSeenAt` TIMESTAMP, `detectedApps` STRING? (JSON `[{"exe":"x.exe","name":"Display name"}]`, Windows only) |
@@ -158,7 +167,6 @@ A note is required for all of these, and the apps refuse to save without one.
 | Type | recordName | Fields |
 |------|-----------|--------|
 | `Invite` | `invite-<6-digit code>` | `kind` STRING (`child`/`parent`), `shareURLs` STRING (JSON array of share URL strings), `expiresAt` TIMESTAMP |
-| `ShareLink` | `sharelink-<childId>` | `shareURL` STRING (the child's `Activity` share) |
 
 A share URL on its own grants nothing: only invited participants can accept a private
 share. That makes the public records safe to expose.
@@ -167,29 +175,33 @@ share. That makes the public records safe to expose.
 
 **Add a child (Parent mode)**
 1. Ask for the name, birth year, time zone (default: the device's), and the child's Apple ID email or phone.
-2. Create zone `Family-<childId>`, with `Child`, `Rules` (defaults) and a `Parent` record for each known parent.
-3. Create a zone-wide `CKShare` (`publicPermission = .none`). Add the other parents as `.readWrite`
-   participants (role `.administrator` where available) and the child as `.readOnly`.
-4. Write `Invite` `invite-<code>` (kind `child`, 7-day expiry) holding the share URL, then show the code.
+2. Create zones `Family-<childId>` (with `Child`, `Rules` (defaults) and a `Parent` record for each known
+   parent) and `Activity-<childId>` (empty).
+3. Create a zone-wide `CKShare` on each. Add the other parents as `.readWrite` participants on both. Add the
+   child as `.readOnly` on `Family` and `.readWrite` on `Activity`.
+4. Write `Invite` `invite-<code>` (kind `child`, 7-day expiry) holding **both** share URLs, then show the code.
 
-**Join as child (Child mode)**
-1. Enter the code → fetch `Invite` from the public DB → `CKFetchShareMetadataOperation` → `CKAcceptSharesOperation`.
-2. Create zone `Activity` (if it's missing), write `Link`, and create a zone-wide `CKShare` with every
-   `Parent` from the family zone added `.readOnly` (looked up by `lookupEmail`/`lookupPhone`).
-3. Write `ShareLink` `sharelink-<childId>` with that share URL.
-4. Whenever the family zone's `Parent` records change, reconcile the `Activity` share participants.
-
-**Parent auto-accepts the child's Activity share**: for each child it can see, if the
-`Activity` zone for that child isn't in the shared DB yet, fetch `sharelink-<childId>`
-and accept it. Retry on each refresh.
+**Join as child (Child mode)**: enter the code, fetch `Invite` from the public DB, then
+`CKFetchShareMetadataOperation` and `CKAcceptSharesOperation` for both URLs. That's all: the child
+creates no zones or shares.
 
 **Invite a parent**
 1. The parent enters the new parent's Apple ID email/phone and display name.
-2. Add them as a `.readWrite` participant to every family share, and write their `Parent` record in every family zone.
-3. Write `Invite` (kind `parent`) holding every family share URL, then show the code.
-4. The new parent enters the code in Parent mode and accepts all shares, then auto-accepts each child's `Activity` share
-   once the child's app has added them.
+2. Add them as a `.readWrite` participant to every `Family` **and** `Activity` share, and write their
+   `Parent` record in every family zone.
+3. Write `Invite` (kind `parent`) holding all those share URLs, then show the code.
+4. The new parent enters the code in Parent mode and accepts all shares.
 
-**Windows enforcer**: the child signs in with CloudKit web auth. The enforcer reads the shared DB
-(`zones/list`, then the `Family-*` zone), reads and writes the private `Activity` zone,
-and writes `Device`/`Spend`. It never touches the public DB.
+**Remove a parent**: remove them from every `Family` and `Activity` share and delete their `Parent` records.
+
+**Take over child**: copy both zones into the new owner's private database, re-create both shares
+with the same participants and permissions, and send the child (and other parents) a new invite.
+
+**Windows enforcer**: the child signs in with CloudKit web auth. The enforcer lists the **shared**
+database's zones, reads the `Family-<childId>` zone, and reads and writes `Activity-<childId>`
+(`Device`/`Spend`) in the shared database. It never touches the public or private database.
+
+**Watch**: saves `Session` to `Activity-<childId>` in the shared database.
+
+*Retired (v1 schema, unused):* the `Link` and `ShareLink` record types and the child-owned `Activity`
+zone. They may still exist in the deployed CloudKit schema, which can't remove types.
