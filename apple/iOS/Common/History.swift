@@ -40,10 +40,12 @@ enum HistoryBuilder {
 
 struct HistoryRow: View {
     let item: HistoryItem
+    /// Child mode: arcade-style titles. Parent notes are shown either way.
+    var arcade = false
 
     var body: some View {
         switch item.kind {
-        case .workout(let r): WorkoutRow(resolved: r)
+        case .workout(let r): WorkoutRow(resolved: r, arcade: arcade)
         case .play(let minutes, let apps): playRow(minutes, apps)
         case .adjustment(let a): adjustmentRow(a)
         case .bonus(let b): bonusRow(b)
@@ -52,28 +54,32 @@ struct HistoryRow: View {
     }
 
     private func playRow(_ minutes: Int, _ apps: [String]) -> some View {
-        row(icon: "gamecontroller.fill", tint: .purple,
-            title: "Played \(item.date.formatted(date: .abbreviated, time: .omitted))",
-            detail: apps.isEmpty ? nil : apps.joined(separator: ", "),
-            amount: Fmt.signed(-minutes), amountColor: .red)
+        let day = item.date.formatted(date: .abbreviated, time: .omitted)
+        return row(icon: "gamecontroller.fill", tint: Theme.magenta,
+                   title: arcade ? "GAME TIME · \(day)" : "Played \(day)",
+                   detail: apps.isEmpty ? nil : apps.joined(separator: ", "),
+                   amount: Fmt.signed(-minutes), amountColor: Theme.debit)
     }
 
     private func adjustmentRow(_ a: AdjustmentEntry) -> some View {
-        row(icon: a.minutes >= 0 ? "plus.circle.fill" : "minus.circle.fill", tint: .blue,
-            title: "\(a.byParent) \(a.minutes >= 0 ? "added" : "removed") minutes",
-            detail: a.note, amount: Fmt.signed(a.minutes), amountColor: a.minutes >= 0 ? .green : .red)
+        let added = a.minutes >= 0
+        let title = arcade ? "\(added ? "POWER-UP" : "PENALTY") from \(a.byParent)"
+                           : "\(a.byParent) \(added ? "added" : "removed") minutes"
+        return row(icon: added ? "plus.circle.fill" : "minus.circle.fill", tint: Theme.cyan,
+                   title: title, detail: a.note, amount: Fmt.signed(a.minutes),
+                   amountColor: added ? Theme.credit : Theme.debit)
     }
 
     private func bonusRow(_ b: BonusInfo) -> some View {
         let range = "\(b.startsAt.formatted(date: .abbreviated, time: .shortened)) – \(b.endsAt.formatted(date: .abbreviated, time: .shortened))"
-        return row(icon: "sparkles", tint: .yellow,
-                   title: "\(b.label) by \(b.byParent)",
+        return row(icon: "sparkles", tint: Theme.yellow,
+                   title: arcade ? "MULTIPLIER \(b.label) by \(b.byParent)" : "\(b.label) by \(b.byParent)",
                    detail: "\(range)\n\(b.note)", amount: nil, amountColor: .primary)
     }
 
     private func rulesRow(_ c: RulesChangeInfo) -> some View {
-        row(icon: "slider.horizontal.3", tint: .gray,
-            title: "Rules changed by \(c.byParent)",
+        row(icon: "slider.horizontal.3", tint: Theme.cyan.opacity(0.7),
+            title: arcade ? "NEW RULES from \(c.byParent)" : "Rules changed by \(c.byParent)",
             detail: "\(c.summary)\n\(c.note)", amount: nil, amountColor: .primary)
     }
 
@@ -99,25 +105,28 @@ struct HistoryRow: View {
 
 struct WorkoutRow: View {
     let resolved: ResolvedSession
+    var arcade = false
 
     var body: some View {
         let s = resolved.session
         HStack(alignment: .top, spacing: 12) {
-            Image(systemName: s.activityType.symbol).foregroundStyle(.green).frame(width: 24)
+            Image(systemName: s.activityType.symbol).foregroundStyle(Theme.green).frame(width: 24)
             VStack(alignment: .leading, spacing: 2) {
-                Text("\(s.activityType.title) · \(s.qualifyingMinutes) of \(s.minutes.count) min above the bar")
+                Text(arcade ? "\(s.activityType.title.uppercased()) · \(s.qualifyingMinutes) min powered up"
+                            : "\(s.activityType.title) · \(s.qualifyingMinutes) of \(s.minutes.count) min above the bar")
                     .font(.subheadline.weight(.semibold))
                 if let bonus = resolved.bonus {
                     Text(bonus.label)
                         .font(.caption2.bold())
                         .padding(.horizontal, 6)
                         .padding(.vertical, 1)
-                        .background(.yellow.opacity(0.3), in: Capsule())
+                        .foregroundStyle(Theme.bgBottom)
+                        .background(Theme.yellow, in: Capsule())
                 }
                 if let o = resolved.sessionOverride {
                     Text(o.earnedMinutes == 0 ? "Voided by \(o.byParent): \(o.note)" : "Edited by \(o.byParent): \(o.note)")
                         .font(.caption)
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(Theme.yellow)
                 }
                 Text(s.endedAt.formatted(date: .abbreviated, time: .shortened))
                     .font(.caption2).foregroundStyle(.tertiary)
@@ -132,7 +141,7 @@ struct WorkoutRow: View {
                 }
                 Text(resolved.isVoided ? "Void" : Fmt.signed(resolved.earnMinutes))
                     .font(.subheadline.monospacedDigit())
-                    .foregroundStyle(resolved.isVoided ? Color.secondary : Color.green)
+                    .foregroundStyle(resolved.isVoided ? Color.secondary : Theme.green)
             }
         }
     }

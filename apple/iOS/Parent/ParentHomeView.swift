@@ -41,9 +41,10 @@ struct ParentHomeView: View {
                 }
             }
             if let error = model.errorMessage {
-                Section { Text(error).font(.footnote).foregroundStyle(.red) }
+                Section { Text(error).font(.footnote).foregroundStyle(Theme.magenta) }
             }
         }
+        .themedList()
         .navigationTitle("Family")
         .navigationDestination(for: ChildRoute.self) { route in
             ChildDetailView(childId: route.childId)
@@ -100,17 +101,17 @@ struct ChildSummaryRow: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(entry.state.name).font(.headline)
                 if !entry.hasActivity {
-                    Text("Waiting for \(entry.state.name) to join").font(.caption).foregroundStyle(.orange)
+                    Text("Waiting for \(entry.state.name) to join").font(.caption).foregroundStyle(Theme.yellow)
                 } else if status.canPlay {
                     Text("Can play \(Fmt.minutes(status.minutesAvailable))").font(.caption).foregroundStyle(.secondary)
                 } else if let reason = Fmt.reason(status.reason) {
-                    Text(reason).font(.caption).foregroundStyle(.red)
+                    Text(reason).font(.caption).foregroundStyle(Theme.magenta)
                 }
             }
             Spacer()
             Text(Fmt.minutes(status.balance))
                 .font(.title3.bold().monospacedDigit())
-                .foregroundStyle(status.balance < 0 ? Color.red : Color.green)
+                .foregroundStyle(status.balance < 0 ? Theme.magenta : Theme.green)
         }
     }
 }
@@ -146,7 +147,7 @@ struct ParentOnboardingView: View {
                 Text("Your child's iPhone uses this to share their activity with you. It must match the Apple ID signed in to iCloud on this iPhone.")
             }
             if let error {
-                Section { Text(error).foregroundStyle(.red) }
+                Section { Text(error).foregroundStyle(Theme.magenta) }
             }
             Section {
                 Button {
@@ -158,6 +159,7 @@ struct ParentOnboardingView: View {
             }
             Section { SwitchModeButton() }
         }
+        .themedList()
         .navigationTitle("Set up")
     }
 
@@ -190,7 +192,7 @@ struct InviteCodeView: View {
                 .font(.footnote)
                 .foregroundStyle(.secondary)
             ForEach(notes, id: \.self) { note in
-                Text(note).font(.footnote).foregroundStyle(.orange).multilineTextAlignment(.center)
+                Text(note).font(.footnote).foregroundStyle(Theme.yellow).multilineTextAlignment(.center)
             }
             ShareLink(item: "Your DigitalRewards code is \(code)") {
                 Label("Send code", systemImage: "square.and.arrow.up")

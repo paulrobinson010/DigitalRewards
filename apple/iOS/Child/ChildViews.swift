@@ -36,7 +36,7 @@ struct ChildJoinView: View {
                     .font(.system(.title, design: .monospaced))
             }
             if let error = error ?? model.errorMessage {
-                Section { Text(error).foregroundStyle(.red) }
+                Section { Text(error).foregroundStyle(Theme.magenta) }
             }
             Section {
                 Button {
@@ -50,6 +50,7 @@ struct ChildJoinView: View {
                 Section { SwitchModeButton() }
             }
         }
+        .themedList()
         .navigationTitle("Join your family")
     }
 
@@ -88,9 +89,10 @@ struct ChildHomeView: View {
                 }
             }
             if let error = model.errorMessage {
-                Section { Text(error).font(.footnote).foregroundStyle(.red) }
+                Section { Text(error).font(.footnote).foregroundStyle(Theme.magenta) }
             }
         }
+        .themedList()
         .navigationTitle(model.state.map { "Hi \($0.name)" } ?? "DigitalRewards")
         .refreshable { await model.refresh() }
         .toolbar {

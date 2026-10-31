@@ -62,7 +62,7 @@ struct ChildDetailView: View {
                 }
             }
             if let error {
-                Section { Text(error).foregroundStyle(.red) }
+                Section { Text(error).foregroundStyle(Theme.magenta) }
             }
             Section {
                 ForEach(HistoryBuilder.items(for: entry.state)) { item in
@@ -79,6 +79,7 @@ struct ChildDetailView: View {
                 Text("Tap a workout to change or void its minutes.")
             }
         }
+        .themedList()
         .navigationTitle(entry.state.name)
         .refreshable { await model.refresh() }
         .sheet(isPresented: $showAdjust) {
@@ -122,23 +123,24 @@ struct AdjustmentView: View {
                     ForEach(presets, id: \.self) { p in
                         Button(p > 0 ? "+\(p)" : "\(p)") { minutes = p }
                             .buttonStyle(.bordered)
-                            .tint(p > 0 ? .green : .red)
+                            .tint(p > 0 ? Theme.green : Theme.magenta)
                             .font(.caption)
                     }
                 }
                 Stepper(value: $minutes, in: -600...600, step: 5) {
                     Text(Fmt.signed(minutes))
                         .font(.title3.bold())
-                        .foregroundStyle(minutes >= 0 ? Color.green : Color.red)
+                        .foregroundStyle(minutes >= 0 ? Theme.green : Theme.magenta)
                 }
             }
             Section("Why?") {
                 RequiredNoteField(note: $note)
             }
             if let error {
-                Section { Text(error).foregroundStyle(.red) }
+                Section { Text(error).foregroundStyle(Theme.magenta) }
             }
         }
+        .themedList()
         .navigationTitle("Add or remove minutes")
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
@@ -192,7 +194,7 @@ struct SessionOverrideView: View {
                 LabeledContent("Earned (original)", value: Fmt.minutes(resolved.originalMinutes))
                 if let bonus = resolved.bonus { LabeledContent("Bonus", value: bonus.label) }
                 if let reason = AlertMonitor.suspicionReason(s, among: model.entry(childId)?.state.activity?.sessions ?? []) {
-                    Label(reason, systemImage: "exclamationmark.triangle").foregroundStyle(.orange)
+                    Label(reason, systemImage: "exclamationmark.triangle").foregroundStyle(Theme.yellow)
                 }
             }
             Section {
@@ -214,9 +216,10 @@ struct SessionOverrideView: View {
                 }
             }
             if let error {
-                Section { Text(error).foregroundStyle(.red) }
+                Section { Text(error).foregroundStyle(Theme.magenta) }
             }
         }
+        .themedList()
         .navigationTitle("Edit workout")
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {

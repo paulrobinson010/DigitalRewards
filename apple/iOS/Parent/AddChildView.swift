@@ -55,9 +55,10 @@ struct AddChildView: View {
                 Text("The Apple ID signed in to iCloud on your child's iPhone. Only that account can join.")
             }
             if let error {
-                Section { Text(error).foregroundStyle(.red) }
+                Section { Text(error).foregroundStyle(Theme.magenta) }
             }
         }
+        .themedList()
         .navigationTitle("Add child")
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
@@ -123,7 +124,7 @@ struct TakeOverView: View {
                     Toggle("Remove \(ownerName)", isOn: $dropOwner)
                 }
                 if let error {
-                    Section { Text(error).foregroundStyle(.red) }
+                    Section { Text(error).foregroundStyle(Theme.magenta) }
                 }
                 Section {
                     Button("Take over \(entry.state.name)") {
@@ -132,6 +133,7 @@ struct TakeOverView: View {
                     .disabled(isWorking || (email.trimmed.isEmpty && phone.trimmed.isEmpty))
                 }
             }
+            .themedList()
             .navigationTitle("Take over")
         }
     }

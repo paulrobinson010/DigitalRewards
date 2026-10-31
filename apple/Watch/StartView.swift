@@ -32,7 +32,7 @@ struct StartView: View {
                     .foregroundStyle(.secondary)
             }
             if let error = workout.errorMessage {
-                Text(error).font(.footnote).foregroundStyle(.red)
+                Text(error).font(.footnote).foregroundStyle(Theme.magenta)
             }
         }
         .navigationTitle("Earn minutes")

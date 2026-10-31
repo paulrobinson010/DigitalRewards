@@ -136,7 +136,7 @@ struct RulesEditorView: View {
                 RequiredNoteField(note: $note)
             }
             if let error {
-                Section { Text(error).foregroundStyle(.red) }
+                Section { Text(error).foregroundStyle(Theme.magenta) }
             }
             Section {
                 Button {
@@ -151,6 +151,7 @@ struct RulesEditorView: View {
                 }
             }
         }
+        .themedList()
     }
 
     private func pct(_ x: Double) -> String { "\(Int((x * 100).rounded()))%" }
@@ -210,7 +211,7 @@ struct PlayWindowsEditor: View {
                 }
                 if !item.isValid {
                     Text("Pick at least one day and an end time after the start.")
-                        .font(.caption).foregroundStyle(.red)
+                        .font(.caption).foregroundStyle(Theme.magenta)
                 }
             }
             .buttonStyle(.borderless)

@@ -23,6 +23,7 @@ struct DevicesView: View {
                 }
             }
         }
+        .themedList()
         .navigationTitle("Devices")
         .refreshable { await model.refresh() }
     }
@@ -38,7 +39,7 @@ struct DeviceRow: View {
                 Text(device.name)
                 Text("Last seen \(Fmt.relative(device.lastSeenAt))")
                     .font(.caption)
-                    .foregroundStyle(stale ? Color.orange : Color.secondary)
+                    .foregroundStyle(stale ? Theme.yellow : Color.secondary)
             }
         }
     }
@@ -114,9 +115,10 @@ struct AllowListEditorView: View {
                 }
             }
             if let error {
-                Section { Text(error).foregroundStyle(.red) }
+                Section { Text(error).foregroundStyle(Theme.magenta) }
             }
         }
+        .themedList()
         .searchable(text: $search)
         .navigationTitle("Allowed programs")
         .toolbar {
@@ -163,9 +165,10 @@ struct AlertPrefsView: View {
                 }
             }
             if let error {
-                Section { Text(error).foregroundStyle(.red) }
+                Section { Text(error).foregroundStyle(Theme.magenta) }
             }
         }
+        .themedList()
         .navigationTitle("Alerts")
         .onAppear {
             if prefs == nil { prefs = model.prefs(for: childId) }

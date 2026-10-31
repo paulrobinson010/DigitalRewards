@@ -29,7 +29,7 @@ struct WorkoutView: View {
                     readings
 
                     ProgressView(value: Double(workout.ticksInMinute), total: Double(AppConfig.samplesPerMinute))
-                        .tint(workout.aboveBar ? .green : .red)
+                        .tint(workout.aboveBar ? Theme.green : Theme.magenta)
 
                     controls
                 }
@@ -46,7 +46,7 @@ struct WorkoutView: View {
     private var barIndicator: some View {
         HStack(spacing: 6) {
             Circle()
-                .fill(workout.phase == .paused ? Color.gray : (workout.aboveBar ? Color.green : Color.red))
+                .fill(workout.phase == .paused ? Color.gray : (workout.aboveBar ? Theme.green : Theme.magenta))
                 .frame(width: 12, height: 12)
             Text(workout.phase == .paused ? "Paused" : (workout.aboveBar ? "Above the bar" : "Speed up!"))
                 .font(.footnote.bold())
@@ -71,14 +71,14 @@ struct WorkoutView: View {
         HStack {
             if workout.phase == .paused {
                 Button { workout.resume() } label: { Image(systemName: "play.fill") }
-                    .tint(.green)
+                    .tint(Theme.green)
             } else {
                 Button { workout.pause() } label: { Image(systemName: "pause.fill") }
                     .tint(.yellow)
                     .disabled(workout.phase != .running)
             }
             Button { confirmEnd = true } label: { Image(systemName: "stop.fill") }
-                .tint(.red)
+                .tint(Theme.magenta)
                 .disabled(workout.phase == .ending)
         }
     }

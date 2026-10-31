@@ -17,7 +17,7 @@ struct ParentsView: View {
                         Text([parent.lookupEmail, parent.lookupPhone].compactMap { $0 }.joined(separator: " · "))
                             .font(.caption).foregroundStyle(.secondary)
                         if parent.recordName.hasPrefix("parent-invite-") {
-                            Text("Invited – hasn't joined yet").font(.caption).foregroundStyle(.orange)
+                            Text("Invited – hasn't joined yet").font(.caption).foregroundStyle(Theme.yellow)
                         }
                     }
                     .swipeActions {
@@ -38,6 +38,7 @@ struct ParentsView: View {
                 Section { Text(message).font(.footnote) }
             }
         }
+        .themedList()
         .navigationTitle("Parents")
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
@@ -105,9 +106,10 @@ struct InviteParentView: View {
                     Text("Their Apple ID")
                 }
                 if let error {
-                    Section { Text(error).foregroundStyle(.red) }
+                    Section { Text(error).foregroundStyle(Theme.magenta) }
                 }
             }
+            .themedList()
             .navigationTitle("Invite a parent")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -156,7 +158,7 @@ struct JoinParentView: View {
                     .font(.system(.title, design: .monospaced))
             }
             if let error {
-                Section { Text(error).foregroundStyle(.red) }
+                Section { Text(error).foregroundStyle(Theme.magenta) }
             }
             Section {
                 Button {
@@ -167,6 +169,7 @@ struct JoinParentView: View {
                 .disabled(code.filter(\.isNumber).count != 6 || isWorking)
             }
         }
+        .themedList()
         .navigationTitle("Join a family")
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {

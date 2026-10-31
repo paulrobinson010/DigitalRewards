@@ -60,13 +60,13 @@ struct BalanceCard: View {
                 .foregroundStyle(.secondary)
             Text(Fmt.minutes(status.balance))
                 .font(.system(size: 48, weight: .bold, design: .rounded))
-                .foregroundStyle(status.balance < 0 ? Color.red : Color.green)
+                .foregroundStyle(status.balance < 0 ? Theme.magenta : Theme.green)
                 .contentTransition(.numericText())
             if status.canPlay {
                 Text("Can play \(Fmt.minutes(status.minutesAvailable)) now")
                     .font(.headline)
             } else if let reason = Fmt.reason(status.reason) {
-                Text(reason).font(.headline).foregroundStyle(.red)
+                Text(reason).font(.headline).foregroundStyle(Theme.magenta)
             }
             let headroom = status.balance + state.family.rules.debitLimit
             if state.family.rules.debitLimit > 0 {
@@ -80,7 +80,8 @@ struct BalanceCard: View {
                     .font(.caption.bold())
                     .padding(.horizontal, 10)
                     .padding(.vertical, 4)
-                    .background(.yellow.opacity(0.25), in: Capsule())
+                    .foregroundStyle(Theme.bgBottom)
+                    .background(Theme.yellow, in: Capsule())
             }
         }
         .frame(maxWidth: .infinity)

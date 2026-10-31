@@ -33,9 +33,10 @@ struct BonusesView: View {
                 Text("Workouts that start during a bonus earn more. Bonuses don't stack: the biggest one applies. They also count for past workouts in the window.")
             }
             if let error {
-                Section { Text(error).foregroundStyle(.red) }
+                Section { Text(error).foregroundStyle(Theme.magenta) }
             }
         }
+        .themedList()
         .navigationTitle("Bonuses")
         .toolbar {
             Button("Add bonus", systemImage: "plus") { showAdd = true }
@@ -110,9 +111,10 @@ struct AddBonusView: View {
                 RequiredNoteField(note: $note)
             }
             if let error {
-                Section { Text(error).foregroundStyle(.red) }
+                Section { Text(error).foregroundStyle(Theme.magenta) }
             }
         }
+        .themedList()
         .navigationTitle("Add bonus")
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
