@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#22C55E"/>
+      <stop offset="1" stop-color="#15803D"/>
+    </linearGradient>
+    <linearGradient id="star" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FDE047"/>
+      <stop offset="1" stop-color="#F59E0B"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <!-- Stopwatch -->
+  <rect x="472" y="150" width="80" height="90" rx="24" fill="#FFFFFF"/>
+  <rect x="720" y="250" width="70" height="56" rx="20" fill="#FFFFFF" transform="rotate(45 755 278)"/>
+  <circle cx="512" cy="560" r="330" fill="#FFFFFF"/>
+  <circle cx="512" cy="560" r="270" fill="#14532D"/>
+  <!-- Progress arc: the minutes earned -->
+  <path d="M512 330 A230 230 0 1 1 293 631" fill="none" stroke="#4ADE80" stroke-width="40" stroke-linecap="round"/>
+  <!-- Star -->
+  <path fill="url(#star)" stroke="#FFFFFF" stroke-width="10" stroke-linejoin="round"
+        d="M512 410 L553 498 L648 508 L577 572 L597 666 L512 618 L427 666 L447 572 L376 508 L471 498 Z"/>
+</svg>
