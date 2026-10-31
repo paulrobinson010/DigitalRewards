@@ -27,6 +27,25 @@ final class AppServices {
         }
     }
 
+    #if DEBUG
+    /// Backing storage for `screenshotMode` (tracked by @Observable).
+    private var storedScreenshotMode = ScreenshotMode.isOn
+
+    /// App Store screenshot mode: the demo family, no iCloud. Debug builds only.
+    var screenshotMode: Bool {
+        get { storedScreenshotMode }
+        set {
+            storedScreenshotMode = newValue
+            ScreenshotMode.isOn = newValue
+            if !newValue {
+                child.clearDemo()
+                parent.clearDemo()
+                Task { await refresh() }
+            }
+        }
+    }
+    #endif
+
     init() {
         storedMode = UserDefaults.standard.string(forKey: Self.modeKey).flatMap(AppMode.init(rawValue:))
     }

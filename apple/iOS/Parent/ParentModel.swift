@@ -77,9 +77,30 @@ final class ParentModel {
         await refresh()
     }
 
+    #if DEBUG
+    /// Screenshot mode: show the demo family as this parent. Nothing is saved.
+    func loadDemo(children demo: [ChildEntry], profile demoProfile: ParentProfile) {
+        profile = demoProfile
+        children = demo
+        prefs = [:]
+        hasLoaded = true
+        errorMessage = nil
+    }
+
+    func clearDemo() {
+        profile = ParentProfile.saved
+        children = []
+        prefs = [:]
+        hasLoaded = false
+    }
+    #endif
+
     // MARK: Loading
 
     func refresh() async {
+        #if DEBUG
+        if ScreenshotMode.isOn { return }   // Showing the demo family.
+        #endif
         guard let profile else { return }
         // Show the local mirror straight away: the last known state at launch, and this
         // device's own writes immediately after a save. The fetch below only brings changes.

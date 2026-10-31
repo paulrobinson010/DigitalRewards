@@ -24,6 +24,9 @@ final class ChildModel {
     var history: [HistoryItem] { state.map(HistoryBuilder.items(for:)) ?? [] }
 
     func refresh() async {
+        #if DEBUG
+        if ScreenshotMode.isOn { return }   // Showing the demo family.
+        #endif
         // Show the local mirror straight away; the fetch below only brings changes.
         if let local = await localState() {
             state = local
@@ -77,6 +80,20 @@ final class ChildModel {
         let activity = await SnapshotLoader.cachedActivity(ChildLocator.activityZone(for: zone))
         return ChildState(family: family, activity: activity)
     }
+
+    #if DEBUG
+    /// Screenshot mode: show a demo child instead of iCloud data.
+    func loadDemo(_ demo: ChildState) {
+        state = demo
+        phase = .ready
+        errorMessage = nil
+    }
+
+    func clearDemo() {
+        state = nil
+        phase = .loading
+    }
+    #endif
 
     func join(code: String) async throws {
         try await ChildSetup.join(code: code, store: store)

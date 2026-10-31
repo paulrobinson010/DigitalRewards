@@ -60,6 +60,7 @@ struct ParentHomeView: View {
                     Button("Parents", systemImage: "person.2") { showParents = true }
                     SwitchModeButton()
                     #if DEBUG
+                    ScreenshotModeButton()
                     Button("Create CloudKit schema", systemImage: "hammer") {
                         Task {
                             do {
@@ -157,7 +158,12 @@ struct ParentOnboardingView: View {
                 }
                 .disabled(name.trimmed.isEmpty || (email.trimmed.isEmpty && phone.trimmed.isEmpty) || isSaving)
             }
-            Section { SwitchModeButton() }
+            Section {
+                SwitchModeButton()
+                #if DEBUG
+                ScreenshotModeButton()
+                #endif
+            }
         }
         .themedList()
         .navigationTitle("Set up")

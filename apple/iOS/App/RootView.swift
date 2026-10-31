@@ -4,6 +4,19 @@ struct RootView: View {
     @Environment(AppServices.self) private var services
 
     var body: some View {
+        #if DEBUG
+        if services.screenshotMode {
+            ScreenshotRootView()
+        } else {
+            modeView
+        }
+        #else
+        modeView
+        #endif
+    }
+
+    @ViewBuilder
+    private var modeView: some View {
         switch services.mode {
         case .child:
             ChildRootView()
@@ -47,6 +60,10 @@ struct ModePickerView: View {
                 .font(.footnote)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
+            #if DEBUG
+            ScreenshotModeButton()
+                .font(.footnote)
+            #endif
         }
         .padding()
         .background(ThemeBackground())

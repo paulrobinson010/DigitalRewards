@@ -62,7 +62,12 @@ struct ChildJoinView: View {
                 .disabled(code.filter(\.isNumber).count != 6 || isJoining)
             }
             if !isRejoin {
-                Section { SwitchModeButton() }
+                Section {
+                    SwitchModeButton()
+                    #if DEBUG
+                    ScreenshotModeButton()
+                    #endif
+                }
             }
         }
         .themedList()
@@ -133,6 +138,9 @@ struct ChildHomeView: View {
             Menu {
                 Button("Join with a new code", systemImage: "number") { showRejoin = true }
                 SwitchModeButton()
+                #if DEBUG
+                ScreenshotModeButton()
+                #endif
             } label: {
                 Image(systemName: "ellipsis.circle")
             }
@@ -177,6 +185,9 @@ struct ChildHomeView: View {
 
     /// Celebrates workouts that ended since this device last showed the child's screen.
     private func checkForNewWorkouts() {
+        #if DEBUG
+        if ScreenshotMode.isOn { return }
+        #endif
         guard frozenCelebration == nil, let state = model.state, let newest = newestWorkoutEnd else { return }
         let key = "dr.arcade.lastSeenWorkout.\(state.childId)"
         let defaults = UserDefaults.standard
