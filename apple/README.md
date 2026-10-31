@@ -68,7 +68,7 @@ TestFlight may not install for under-13 Apple IDs. Instead, install from Xcode. 
 3. Product › Archive, then Distribute App › App Store Connect.
 
 App icons come from `iOS/Assets.xcassets` and `Watch/Assets.xcassets` (one 1024×1024 image each),
-drawn by `tools/make_icon.py`. Replace `AppIcon.png` in both with a real design whenever you like.
+copied from `Branding/app-icon.png` by `tools/make_icon.py` (the design source is `Branding/app-icon.svg`; see the script for the render step).
 
 ## CloudKit schema
 
