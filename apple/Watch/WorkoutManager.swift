@@ -39,6 +39,8 @@ final class WorkoutManager: NSObject {
     private var heartRateAt: Date?
     private var cadenceAt: Date?
     private var sessionUUID = UUID()
+    /// Screenshot mode's demo workout: when it "started" (no HealthKit session).
+    private var demoStart: Date?
 
     /// Readings older than this don't count (e.g. watch off the wrist, standing still).
     private let staleAfter: TimeInterval = 15
@@ -59,7 +61,10 @@ final class WorkoutManager: NSObject {
         Qualification.hrThresholdBpm(rules: rules, activity: activity, birthYear: birthYear, atYear: currentYear)
     }
 
-    var elapsed: TimeInterval { builder?.elapsedTime ?? 0 }
+    var elapsed: TimeInterval {
+        if let builder { return builder.elapsedTime }
+        return demoStart.map { Date().timeIntervalSince($0) } ?? 0
+    }
 
     // MARK: Authorization
 
@@ -139,6 +144,12 @@ final class WorkoutManager: NSObject {
 
     func end() async {
         guard phase == .running || phase == .paused else { return }
+        #if DEBUG
+        if demoStart != nil {
+            showDemoSummary()
+            return
+        }
+        #endif
         phase = .ending
         samplerTask?.cancel()
         samplerTask = nil
@@ -178,6 +189,7 @@ final class WorkoutManager: NSObject {
 
     /// Back to the start screen after the summary.
     func reset() {
+        demoStart = nil
         lastSession = nil
         resetCounters()
         phase = .idle
@@ -298,3 +310,41 @@ extension WorkoutManager: HKLiveWorkoutBuilderDelegate {
 
     nonisolated func workoutBuilderDidCollectEvent(_ workoutBuilder: HKLiveWorkoutBuilder) {}
 }
+
+#if DEBUG
+// MARK: - Screenshot mode
+
+extension WorkoutManager {
+    /// A live-looking brisk walk with a 2× bonus, without HealthKit: HR 132, cadence 118,
+    /// above the bar, 6 qualifying minutes (120 game minutes with the bonus).
+    func startDemo() {
+        guard phase == .idle else { return }
+        activity = .walk
+        rules = .defaults
+        birthYear = Calendar.current.component(.year, from: Date()) - 12
+        bonusMultiplier = 2
+        resetCounters()
+        heartRate = 132
+        cadence = 118
+        aboveBar = true
+        qualifyingMinutes = 6
+        completedMinutes = 7
+        ticksInMinute = 8
+        demoStart = Date().addingTimeInterval(-(7 * 60 + 40))
+        phase = .running
+    }
+
+    /// The summary screen for the demo walk. Nothing is uploaded.
+    func showDemoSummary() {
+        if phase == .idle { startDemo() }
+        let end = Date()
+        let good = MinuteResult(p: 12, t: 12, hr: 132, cad: 118)
+        lastSession = SessionInfo(
+            id: "session-demo", activityType: .walk,
+            startedAt: demoStart ?? end.addingTimeInterval(-480), endedAt: end,
+            minutes: Array(repeating: good, count: 6) + [MinuteResult(p: 7, t: 12, hr: 121, cad: 101)],
+            qualifyingMinutes: 6, earnedMinutes: 6 * rules.ratio, rulesSnapshot: rules, deviceId: "demo")
+        phase = .finished
+    }
+}
+#endif

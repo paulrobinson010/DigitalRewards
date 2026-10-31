@@ -9,6 +9,7 @@ struct DigitalRewardsWatchApp: App {
     var body: some Scene {
         WindowGroup {
             WatchRootView()
+                .tint(Theme.cyan)
                 .environment(store)
                 .environment(workout)
                 .environment(uploader)
@@ -34,6 +35,13 @@ struct WatchRootView: View {
             }
         }
         .task {
+            #if DEBUG
+            if ScreenshotMode.isOn {
+                // Screenshot mode: no HealthKit or iCloud, straight into the demo walk.
+                workout.startDemo()
+                return
+            }
+            #endif
             store.activate()
             await workout.requestAuthorization()
             await store.refreshFromCloud()

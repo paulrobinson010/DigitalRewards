@@ -8,9 +8,19 @@ struct StartView: View {
 
     var body: some View {
         List {
+            VStack(spacing: 4) {
+                PixelAlien(animated: true, glow: 5)
+                    .frame(height: 34)
+                Text("READY?")
+                    .font(Theme.label(14))
+                    .tracking(3)
+                    .foregroundStyle(Theme.cyan)
+            }
+            .frame(maxWidth: .infinity)
+            .listRowBackground(Color.clear)
             if let bonus = store.context?.activeBonus(at: Date()) {
                 Label(bonus.label, systemImage: "sparkles")
-                    .foregroundStyle(.yellow)
+                    .foregroundStyle(Theme.yellow)
             }
             ForEach(ActivityType.allCases, id: \.self) { activity in
                 Button {
@@ -18,10 +28,17 @@ struct StartView: View {
                 } label: {
                     Label(activity.title, systemImage: activity.symbol)
                         .font(.headline)
+                        .foregroundStyle(Theme.green)
                         .padding(.vertical, 8)
                 }
             }
-            if store.context == nil {
+            #if DEBUG
+            Button("Demo workout", systemImage: "camera") { workout.startDemo() }
+                .foregroundStyle(Theme.yellow)
+            Button("Demo summary", systemImage: "camera") { workout.showDemoSummary() }
+                .foregroundStyle(Theme.yellow)
+            #endif
+            if store.context == nil && !Self.hidesJoinHint {
                 Text("Open DigitalRewards on your iPhone and join your family first. Workouts will still be saved.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
@@ -36,6 +53,15 @@ struct StartView: View {
             }
         }
         .navigationTitle("Earn minutes")
+    }
+
+    /// Screenshot mode has no family on the watch; don't show the "join first" hint.
+    private static var hidesJoinHint: Bool {
+        #if DEBUG
+        return ScreenshotMode.isOn
+        #else
+        return false
+        #endif
     }
 }
 

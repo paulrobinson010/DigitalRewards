@@ -21,38 +21,35 @@ struct ModePickerView: View {
     var body: some View {
         VStack(spacing: 24) {
             Spacer()
-            Image(systemName: "figure.walk.motion")
-                .font(.system(size: 64))
-                .foregroundStyle(.green)
+            PixelAlien(animated: true)
+                .frame(height: 90)
             Text("DigitalRewards")
-                .font(.largeTitle.bold())
+                .font(Theme.label(34))
+                .foregroundStyle(.white)
             Text("Move to earn gaming time.")
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Theme.cyan)
             Spacer()
             Button {
                 services.mode = .parent
                 Task { await services.refresh() }
             } label: {
                 Label("I'm a parent", systemImage: "person.2.fill")
-                    .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
+            .buttonStyle(NeonButtonStyle(color: Theme.cyan))
             Button {
                 services.mode = .child
                 Task { await services.refresh() }
             } label: {
-                Label("I'm a child", systemImage: "figure.and.child.holdinghands")
-                    .frame(maxWidth: .infinity)
+                Label("I'm a child", systemImage: "gamecontroller.fill")
             }
-            .buttonStyle(.bordered)
-            .controlSize(.large)
+            .buttonStyle(NeonButtonStyle(color: Theme.green))
             Text("This is set once per device. Use your own Apple ID on your own iPhone.")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
         }
         .padding()
+        .background(ThemeBackground())
     }
 }
 

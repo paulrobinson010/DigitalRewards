@@ -111,6 +111,10 @@ final class CloudStore: @unchecked Sendable {
     /// Creates the zone in the private database if needed (saving an existing zone is a no-op).
     @discardableResult
     func ensurePrivateZone(_ name: String) async throws -> ZoneRef {
+        #if DEBUG
+        // Screenshot mode never touches iCloud.
+        if ScreenshotMode.isOn { return .privateZone(name) }
+        #endif
         let zone = CKRecordZone(zoneName: name)
         _ = try await database(.privateDB).save(zone)
         return .privateZone(name)
@@ -256,6 +260,10 @@ final class CloudStore: @unchecked Sendable {
     /// Saves records, overwriting whatever is on the server (records with
     /// deterministic names are idempotent this way).
     func upsert(_ records: [CKRecord], scope: CloudScope) async throws {
+        #if DEBUG
+        // Screenshot mode never touches iCloud.
+        if ScreenshotMode.isOn { return }
+        #endif
         guard !records.isEmpty else { return }
         let result = try await database(scope).modifyRecords(saving: records, deleting: [],
                                                              savePolicy: .allKeys, atomically: false)
@@ -270,6 +278,10 @@ final class CloudStore: @unchecked Sendable {
     /// `CKError.serverRecordChanged` (with `serverRecord`) on conflict.
     @discardableResult
     func saveIfUnchanged(_ record: CKRecord, scope: CloudScope) async throws -> CKRecord {
+        #if DEBUG
+        // Screenshot mode never touches iCloud.
+        if ScreenshotMode.isOn { return record }
+        #endif
         let result = try await database(scope).modifyRecords(saving: [record], deleting: [],
                                                              savePolicy: .ifServerRecordUnchanged, atomically: false)
         guard let r = result.saveResults[record.recordID] else { return record }
@@ -279,6 +291,10 @@ final class CloudStore: @unchecked Sendable {
     }
 
     func delete(_ ids: [CKRecord.ID], scope: CloudScope) async throws {
+        #if DEBUG
+        // Screenshot mode never touches iCloud.
+        if ScreenshotMode.isOn { return }
+        #endif
         guard !ids.isEmpty else { return }
         let result = try await database(scope).modifyRecords(saving: [], deleting: ids,
                                                              savePolicy: .allKeys, atomically: false)
@@ -315,6 +331,10 @@ final class CloudStore: @unchecked Sendable {
 
     @discardableResult
     func saveShare(_ share: CKShare, scope: CloudScope) async throws -> CKShare {
+        #if DEBUG
+        // Screenshot mode never touches iCloud.
+        if ScreenshotMode.isOn { return share }
+        #endif
         let result = try await database(scope).modifyRecords(saving: [share], deleting: [],
                                                              savePolicy: .changedKeys, atomically: false)
         guard let r = result.saveResults[share.recordID] else { return share }
@@ -363,6 +383,10 @@ final class CloudStore: @unchecked Sendable {
     /// Fetches metadata for share URLs and accepts them. Already-accepted shares succeed again.
     @discardableResult
     func acceptShares(_ urls: [URL]) async throws -> [CKShare] {
+        #if DEBUG
+        // Screenshot mode never touches iCloud.
+        if ScreenshotMode.isOn { return [] }
+        #endif
         guard !urls.isEmpty else { return [] }
         let metadatas = try await shareMetadata(for: urls)
         return try await accept(metadatas)
@@ -428,6 +452,10 @@ final class CloudStore: @unchecked Sendable {
 
     /// Silent-push subscription for any change in the private or shared database.
     func ensureDatabaseSubscription(_ scope: CloudScope) async throws {
+        #if DEBUG
+        // Screenshot mode never touches iCloud.
+        if ScreenshotMode.isOn { return }
+        #endif
         precondition(scope != .publicDB, "Database subscriptions aren't supported on the public database")
         let id = "dr-\(scope.rawValue)-changes"
         let subscription = CKDatabaseSubscription(subscriptionID: id)

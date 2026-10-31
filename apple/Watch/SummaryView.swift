@@ -8,12 +8,17 @@ struct SummaryView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 8) {
-                Image(systemName: "checkmark.circle.fill")
-                    .font(.largeTitle)
-                    .foregroundStyle(.green)
+                PixelAlien(animated: true, glow: 5)
+                    .frame(height: 30)
                 if let s = workout.lastSession {
-                    Text("\(workout.displayedMinutes) min earned")
-                        .font(.title3.bold())
+                    Text("+\(workout.displayedMinutes)")
+                        .font(Theme.arcade(34))
+                        .foregroundStyle(Theme.green)
+                        .neonGlow(Theme.green, radius: 6)
+                    Text("CREDITS EARNED")
+                        .font(Theme.label(11))
+                        .tracking(2)
+                        .foregroundStyle(Theme.cyan)
                     if workout.bonusMultiplier > 1 {
                         Text("Includes \(BonusInfo.label(workout.bonusMultiplier))").font(.footnote)
                     }
@@ -31,6 +36,7 @@ struct SummaryView: View {
                     }
                 }
                 Button("Done") { workout.reset() }
+                    .tint(Theme.cyan)
             }
         }
     }

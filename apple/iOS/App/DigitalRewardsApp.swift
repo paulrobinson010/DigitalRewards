@@ -9,6 +9,8 @@ struct DigitalRewardsApp: App {
     var body: some Scene {
         WindowGroup {
             RootView()
+                .preferredColorScheme(.dark)
+                .tint(Theme.cyan)
                 .environment(services)
                 .environment(services.child)
                 .environment(services.parent)

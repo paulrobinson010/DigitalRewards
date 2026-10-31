@@ -11,18 +11,24 @@ struct WorkoutView: View {
                 VStack(spacing: 6) {
                     Text(Duration.seconds(workout.elapsed).formatted(.time(pattern: .hourMinuteSecond)))
                         .font(.system(.title3, design: .rounded).monospacedDigit())
+                        .foregroundStyle(Theme.cyan)
 
                     HStack(alignment: .firstTextBaseline, spacing: 4) {
                         Text("\(workout.displayedMinutes)")
-                            .font(.system(size: 40, weight: .bold, design: .rounded))
+                            .font(Theme.arcade(40))
+                            .foregroundStyle(Theme.green)
+                            .neonGlow(Theme.green, radius: 6)
+                            .contentTransition(.numericText(value: Double(workout.displayedMinutes)))
+                            .animation(.spring(duration: 0.5), value: workout.displayedMinutes)
                         Text("min earned").font(.footnote).foregroundStyle(.secondary)
                     }
                     if workout.bonusMultiplier > 1 {
                         Text(BonusInfo.label(workout.bonusMultiplier))
                             .font(.caption.bold())
+                            .foregroundStyle(Theme.bgBottom)
                             .padding(.horizontal, 8)
                             .padding(.vertical, 2)
-                            .background(.yellow.opacity(0.25), in: Capsule())
+                            .background(Theme.yellow, in: Capsule())
                     }
 
                     barIndicator
@@ -48,15 +54,17 @@ struct WorkoutView: View {
             Circle()
                 .fill(workout.phase == .paused ? Color.gray : (workout.aboveBar ? Theme.green : Theme.magenta))
                 .frame(width: 12, height: 12)
+                .neonGlow(workout.aboveBar ? Theme.green : Theme.magenta, radius: 4)
             Text(workout.phase == .paused ? "Paused" : (workout.aboveBar ? "Above the bar" : "Speed up!"))
                 .font(.footnote.bold())
+                .foregroundStyle(workout.phase == .paused ? Color.secondary : (workout.aboveBar ? Theme.green : Theme.magenta))
         }
     }
 
     private var readings: some View {
         HStack {
             Label(workout.heartRate.map { "\(Int($0.rounded()))" } ?? "--", systemImage: "heart.fill")
-                .foregroundStyle(.pink)
+                .foregroundStyle(Theme.magenta)
             Text("/ \(workout.thresholdBpm)").foregroundStyle(.secondary)
             if workout.activity == .walk {
                 Spacer()
@@ -74,7 +82,7 @@ struct WorkoutView: View {
                     .tint(Theme.green)
             } else {
                 Button { workout.pause() } label: { Image(systemName: "pause.fill") }
-                    .tint(.yellow)
+                    .tint(Theme.yellow)
                     .disabled(workout.phase != .running)
             }
             Button { confirmEnd = true } label: { Image(systemName: "stop.fill") }

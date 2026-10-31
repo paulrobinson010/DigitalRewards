@@ -306,12 +306,14 @@ struct Celebration: Identifiable, Equatable {
 /// "+N CREDITS!" with pixel confetti (just the text when Reduce Motion is on).
 struct CelebrationOverlay: View {
     let celebration: Celebration
+    /// Screenshot mode: hold the confetti mid-burst.
+    var frozen = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         ZStack {
-            if !reduceMotion {
-                PixelConfetti(start: celebration.start)
+            if !reduceMotion || frozen {
+                PixelConfetti(start: celebration.start, frozenAt: frozen ? 1.2 : nil)
             }
             Text("+\(celebration.credits) CREDITS!")
                 .font(Theme.arcade(34))
@@ -331,6 +333,8 @@ struct CelebrationOverlay: View {
 /// Falling neon pixels.
 struct PixelConfetti: View {
     let start: Date
+    /// Seconds into the burst to hold still at, or nil to animate.
+    var frozenAt: Double?
     @State private var pieces = PixelConfetti.makePieces()
 
     struct Piece {
@@ -352,20 +356,31 @@ struct PixelConfetti: View {
     }
 
     var body: some View {
-        TimelineView(.animation) { timeline in
-            Canvas { context, size in
-                let t = timeline.date.timeIntervalSince(start)
-                context.opacity = max(0, min(1, 3.2 - t))
-                for p in pieces {
-                    let tt = t - p.delay
-                    guard tt > 0 else { continue }
-                    let y = -20 + tt * p.speed * size.height
-                    guard y < size.height + 20 else { continue }
-                    let x = (p.x + p.drift * tt) * size.width
-                    context.fill(Path(CGRect(x: x, y: y, width: p.size, height: p.size)), with: .color(p.color))
+        Group {
+            if let frozenAt {
+                Canvas { context, size in
+                    Self.draw(&context, size: size, t: frozenAt, pieces: pieces)
+                }
+            } else {
+                TimelineView(.animation) { timeline in
+                    Canvas { context, size in
+                        Self.draw(&context, size: size, t: timeline.date.timeIntervalSince(start), pieces: pieces)
+                    }
                 }
             }
         }
         .ignoresSafeArea()
+    }
+
+    private static func draw(_ context: inout GraphicsContext, size: CGSize, t: Double, pieces: [Piece]) {
+        context.opacity = max(0, min(1, 3.2 - t))
+        for p in pieces {
+            let tt = t - p.delay
+            guard tt > 0 else { continue }
+            let y = -20 + tt * p.speed * size.height
+            guard y < size.height + 20 else { continue }
+            let x = (p.x + p.drift * tt) * size.width
+            context.fill(Path(CGRect(x: x, y: y, width: p.size, height: p.size)), with: .color(p.color))
+        }
     }
 }

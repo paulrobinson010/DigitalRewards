@@ -55,6 +55,10 @@ actor SyncEngine {
     /// Brings every zone in a database up to date. Concurrent calls for the same
     /// database share one fetch.
     func sync(_ scope: CloudScope) async throws {
+        #if DEBUG
+        // Screenshot mode never touches iCloud.
+        if ScreenshotMode.isOn { return }
+        #endif
         precondition(scope != .publicDB, "The public database isn't mirrored")
         if let task = running[scope] {
             try await task.value
@@ -68,6 +72,10 @@ actor SyncEngine {
 
     /// Brings one zone up to date and keeps mirroring it from now on.
     func syncZone(_ zone: ZoneRef) async throws {
+        #if DEBUG
+        // Screenshot mode never touches iCloud.
+        if ScreenshotMode.isOn { return }
+        #endif
         try await ensureAccount()
         let zone = Self.normalized(zone)
         do {
