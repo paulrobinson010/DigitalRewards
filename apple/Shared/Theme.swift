@@ -77,11 +77,13 @@ extension View {
         modifier(NeonCard(border: border, padding: padding))
     }
 
+    #if os(iOS)
     /// Lists and Forms: drop the default grey background and show the theme gradient.
     func themedList() -> some View {
         scrollContentBackground(.hidden)
             .background(ThemeBackground())
     }
+    #endif
 }
 
 /// The app's dark purple gradient, edge to edge.

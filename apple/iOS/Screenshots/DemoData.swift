@@ -76,13 +76,14 @@ enum DemoData {
             session(id: "session-demo-jensen-\(i)", daysAgo: p.0, type: p.1, hour: p.2, minute: p.3,
                     total: p.4, qualifying: p.5, rules: jensenRules, rng: &rng)
         }
+        // Devices use the real clock: the Devices screen flags ones not seen recently.
         let devices = [
             DeviceInfo(deviceId: pcDeviceId, kind: .windows, name: "Jensen's PC",
-                       lastSeenAt: now.addingTimeInterval(-120), detectedApps: pcApps),
+                       lastSeenAt: Date().addingTimeInterval(-120), detectedApps: pcApps),
             DeviceInfo(deviceId: "demo-jensen-iphone", kind: .ios, name: "Jensen's iPhone",
-                       lastSeenAt: now.addingTimeInterval(-900), detectedApps: nil),
+                       lastSeenAt: Date().addingTimeInterval(-900), detectedApps: nil),
             DeviceInfo(deviceId: "demo-jensen-watch", kind: .watch, name: "Jensen's Apple Watch",
-                       lastSeenAt: now.addingTimeInterval(-3000), detectedApps: nil),
+                       lastSeenAt: Date().addingTimeInterval(-3000), detectedApps: nil),
         ]
         var family = FamilySnapshot(
             zone: .privateZone(AppConfig.familyZoneName(childId: jensenId)),
@@ -158,7 +159,7 @@ enum DemoData {
         var spends = [(0, 16, 0, 40), (1, 17, 0, 60), (3, 15, 0, 90), (5, 16, 30, 50), (9, 14, 0, 120)]
             .flatMap { play(daysAgo: $0.0, hour: $0.1, minute: $0.2, minutes: $0.3, apps: ["Toca Boca"]) }
         let devices = [DeviceInfo(deviceId: "demo-lotus-ipad", kind: .ios, name: "Lotus's iPad",
-                                  lastSeenAt: now.addingTimeInterval(-600), detectedApps: nil)]
+                                  lastSeenAt: Date().addingTimeInterval(-600), detectedApps: nil)]
         let zone = ZoneRef.privateZone(AppConfig.activityZoneName(childId: lotusId))
         let current = ChildState(family: family,
                                  activity: ActivitySnapshot(zone: zone, sessions: sessions, spends: spends, devices: devices),

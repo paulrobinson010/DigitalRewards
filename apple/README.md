@@ -70,6 +70,50 @@ TestFlight may not install for under-13 Apple IDs. Instead, install from Xcode. 
 App icons come from `iOS/Assets.xcassets` and `Watch/Assets.xcassets` (one 1024×1024 image each),
 copied from `Branding/app-icon.png` by `tools/make_icon.py` (the design source is `Branding/app-icon.svg`; see the script for the render step).
 
+## Look and feel
+
+The cyberpunk theme matches the icon (`Branding/app-icon.svg`). Colours, the neon glow, cards,
+the background gradient and the button style are in `Shared/Theme.swift`. The pixel alien is
+`Shared/PixelAlien.swift` and uses the same 11 × 8 grid as the icon. Both apps are always dark.
+Credit is green, debit magenta and warnings yellow.
+
+Child mode is arcade-style (`iOS/Child/ArcadeViews.swift`):
+- a CREDITS scoreboard and an alien whose mood follows the balance
+- a stopwatch ring for today
+- GAME OVER / INSERT COIN banners
+- a streak, a level and a high score, worked out by `RewardsCore/PlayerProgress.swift`
+- a confetti burst when a new workout arrives
+
+## App Store screenshots
+
+Debug builds have a **screenshot mode**. It shows a fixed demo family:
+- **Jensen**, 12, the featured child, in credit, with a 5-day streak
+- **Lotus**, 6, slightly in debit
+- **Dad**, the signed-in parent, and **Mum**
+
+It makes no iCloud calls and saves nothing, and its "now" is fixed at the most recent weekday at
+17:30, so the numbers don't move between shots. It isn't compiled into TestFlight or App Store builds.
+
+**Turning it on**
+- **In the app:** Parent ⋯ menu, Child ⋯ menu, the first-launch screen or the join screen ›
+  **Screenshot mode**.
+- **Simulator (no iCloud needed):** Product › Scheme › Edit Scheme › Run › Arguments ›
+  *Arguments Passed On Launch*, then add `-ScreenshotMode YES`. Do the same on the
+  **DigitalRewardsWatch** scheme. The watch then opens straight into a demo walk.
+
+**Taking the shots**
+1. Tap the yellow camera button to pick a scene: kid home (credit, celebration, debit), kid history,
+   parent home, child detail, rules, bonuses, devices, or PC allowed programs.
+2. Choose **Hide camera button** before capturing. Long-press anywhere for 1.5 s to bring it back.
+3. In the Simulator, press **⌘S** to save a screenshot to the Desktop.
+4. On the watch, the start screen's **Demo workout** and **Demo summary** buttons (debug builds only)
+   show those two screens without HealthKit.
+
+**Sizes App Store Connect needs**
+- iPhone 6.9″: an iPhone 16 Pro Max Simulator.
+- iPad 13″: an iPad Pro 13-inch (M4) Simulator, because the app supports iPad.
+- Apple Watch: an Apple Watch Series 10 (46 mm) or Ultra 2 Simulator.
+
 ## CloudKit schema
 
 In the **Development** environment, record types are created automatically the first time each is
