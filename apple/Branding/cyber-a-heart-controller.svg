@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1A0B3B"/><stop offset="1" stop-color="#07030F"/></linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="12" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="softglow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="28"/></filter></defs>
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <g stroke="#FF2BD6" stroke-width="3" opacity="0.18">
+    <line x1="0" y1="800" x2="1024" y2="800"/><line x1="0" y1="860" x2="1024" y2="860"/><line x1="0" y1="935" x2="1024" y2="935"/>
+    <line x1="512" y1="760" x2="512" y2="1024"/><line x1="380" y1="760" x2="200" y2="1024"/><line x1="644" y1="760" x2="824" y2="1024"/>
+    <line x1="250" y1="760" x2="-100" y2="1024"/><line x1="774" y1="760" x2="1124" y2="1024"/></g>
+  <!-- Controller outline (cyan neon) -->
+  <g filter="url(#glow)" fill="none" stroke="#00F0FF" stroke-width="30" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M315 370 H709 A145 145 0 0 1 854 515 V590 A150 150 0 0 1 616 715 L590 690 H434 L408 715 A150 150 0 0 1 170 590 V515 A145 145 0 0 1 315 370 Z"/>
+    <path d="M250 500 H370 M310 440 V560"/>
+  </g>
+  <g filter="url(#glow)" fill="#F5FF3D">
+    <circle cx="734" cy="450" r="22"/><circle cx="734" cy="550" r="22"/>
+    <circle cx="684" cy="500" r="22"/><circle cx="784" cy="500" r="22"/>
+  </g>
+  <!-- Heart with pulse (magenta neon) -->
+  <g filter="url(#glow)" fill="none" stroke="#FF2BD6" stroke-width="22" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M512 640 C 470 600, 412 556, 412 494 C 412 452, 442 424, 478 424 C 496 424, 506 432, 512 444 C 518 432, 528 424, 546 424 C 582 424, 612 452, 612 494 C 612 556, 554 600, 512 640 Z"/>
+  </g>
+  <polyline filter="url(#glow)" points="430,510 474,510 494,474 520,548 540,490 556,510 596,510"
+            fill="none" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
