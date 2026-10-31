@@ -18,6 +18,14 @@ settings:
     MARKETING_VERSION: "0.1.0"
     CURRENT_PROJECT_VERSION: "1"
     CODE_SIGN_STYLE: Automatic
+  configs:
+    # Which CloudKit environment a build talks to. Release builds (TestFlight, App Store,
+    # and Xcode runs with the Release configuration) use Production, so a watch app
+    # installed straight from Xcode sees the same data as a TestFlight iPhone app.
+    Debug:
+      CLOUDKIT_ENVIRONMENT: Development
+    Release:
+      CLOUDKIT_ENVIRONMENT: Production
 
 packages:
   RewardsCore:
@@ -63,6 +71,7 @@ targets:
       properties:
         com.apple.developer.icloud-container-identifiers: [iCloud.com.digitalrewards.app]
         com.apple.developer.icloud-services: [CloudKit]
+        com.apple.developer.icloud-container-environment: $(CLOUDKIT_ENVIRONMENT)
         aps-environment: development
 
   DigitalRewardsWatch:
@@ -96,6 +105,7 @@ targets:
       properties:
         com.apple.developer.icloud-container-identifiers: [iCloud.com.digitalrewards.app]
         com.apple.developer.icloud-services: [CloudKit]
+        com.apple.developer.icloud-container-environment: $(CLOUDKIT_ENVIRONMENT)
         com.apple.developer.healthkit: true
 
 schemes:

@@ -40,6 +40,21 @@ If the watch app doesn't end up inside the iOS app (XcodeGen versions differ on 
 single-target watch apps), add it under the iOS target › Build Phases › **Embed Watch Content**,
 destination "Products Directory", subpath `$(CONTENTS_FOLDER_PATH)/Watch`.
 
+## Installing on a child's devices straight from Xcode
+
+TestFlight may not install for under-13 Apple IDs. Instead, install from Xcode. This works for up to
+100 registered devices per type and lasts a year with a paid developer account.
+
+1. Connect the child's iPhone to the Mac (the watch must be paired with it, unlocked and on Wi-Fi).
+   On both, turn on Settings › Privacy & Security › **Developer Mode** (it appears after the first
+   connection to Xcode).
+2. Product › Scheme › Edit Scheme › Run › Build Configuration: **Release**. Release builds use the
+   **Production** CloudKit environment, the same as TestFlight (`CLOUDKIT_ENVIRONMENT` in
+   `project.yml`). Debug builds use Development.
+3. Pick the **DigitalRewardsWatch** scheme and the child's watch as the destination, then Run.
+   Xcode registers the devices with your team and installs. Do the same with the **DigitalRewards**
+   scheme on the iPhone if needed.
+
 ## Distributing (TestFlight / App Store)
 
 1. **Create the app record yourself** in App Store Connect (Apps › + › New App): platform iOS,
