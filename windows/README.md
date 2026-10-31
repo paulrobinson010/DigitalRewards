@@ -1,6 +1,6 @@
-# DigitalRewards for Windows
+# Go AFK for Windows
 
-The Windows enforcer counts a child's play time, debits their DigitalRewards balance in iCloud,
+The Windows enforcer counts a child's play time, debits their Go AFK balance in iCloud,
 and closes apps when time runs out. It implements `docs/SPEC.md` §6 and `docs/CONTRACT.md`.
 
 ## Projects

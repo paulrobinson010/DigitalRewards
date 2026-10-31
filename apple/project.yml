@@ -55,7 +55,7 @@ targets:
     info:
       path: iOS/Info.plist
       properties:
-        CFBundleDisplayName: DigitalRewards
+        CFBundleDisplayName: Go AFK
         # The app is always dark (cyberpunk theme), sheets included.
         UIUserInterfaceStyle: Dark
         UILaunchScreen: {}
@@ -96,14 +96,14 @@ targets:
     info:
       path: Watch/Info.plist
       properties:
-        CFBundleDisplayName: DigitalRewards
+        CFBundleDisplayName: Go AFK
         WKApplication: true
         WKCompanionAppBundleIdentifier: $(APP_BUNDLE_ID)
         WKRunsIndependentlyOfCompanionApp: false
         WKBackgroundModes: [workout-processing]
-        NSHealthShareUsageDescription: DigitalRewards reads your heart rate during workouts to check you're moving fast enough to earn minutes.
-        NSHealthUpdateUsageDescription: DigitalRewards saves your workouts to the Health app.
-        NSMotionUsageDescription: DigitalRewards uses your step rate to check walks are brisk enough to earn minutes.
+        NSHealthShareUsageDescription: Go AFK reads your heart rate during workouts to check you're moving fast enough to earn minutes.
+        NSHealthUpdateUsageDescription: Go AFK saves your workouts to the Health app.
+        NSMotionUsageDescription: Go AFK uses your step rate to check walks are brisk enough to earn minutes.
     entitlements:
       path: Watch/DigitalRewardsWatch.entitlements
       properties:

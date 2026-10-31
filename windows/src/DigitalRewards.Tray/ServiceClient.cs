@@ -5,7 +5,7 @@ using DigitalRewards.Enforcement;
 
 namespace DigitalRewards.Tray;
 
-/// <summary>Talks to the DigitalRewards service over its named pipe (one request per connection).</summary>
+/// <summary>Talks to the Go AFK service over its named pipe (one request per connection).</summary>
 internal static class ServiceClient
 {
     public static async Task<AgentResponse> SendAsync(AgentRequest request, TimeSpan timeout)
@@ -22,12 +22,12 @@ internal static class ServiceClient
             using var reader = new StreamReader(pipe, Encoding.UTF8);
             var line = await reader.ReadLineAsync(cts.Token).ConfigureAwait(false);
             return line is null
-                ? AgentResponse.Fail("No answer from the DigitalRewards service.")
+                ? AgentResponse.Fail("No answer from the Go AFK service.")
                 : AgentProtocol.Deserialize<AgentResponse>(line) ?? AgentResponse.Fail("Bad answer from the service.");
         }
         catch (Exception e) when (e is IOException or OperationCanceledException or TimeoutException or UnauthorizedAccessException)
         {
-            return AgentResponse.Fail("The DigitalRewards service isn't running.");
+            return AgentResponse.Fail("The Go AFK service isn't running.");
         }
     }
 }

@@ -45,7 +45,7 @@ struct ChildJoinView: View {
                 .listRowBackground(Color.clear)
             }
             Section {
-                Text("Ask a parent to add you in their DigitalRewards app. They'll get a 6-digit code.")
+                Text("Ask a parent to add you in their Go AFK app. They'll get a 6-digit code.")
                 TextField("123456", text: $code)
                     .keyboardType(.numberPad)
                     .font(.system(.title, design: .monospaced))
@@ -129,7 +129,7 @@ struct ChildHomeView: View {
             }
         }
         .sensoryFeedback(.success, trigger: celebrationCount)
-        .navigationTitle("DigitalRewards")
+        .navigationTitle("Go AFK")
         .navigationBarTitleDisplayMode(.inline)
         .refreshable { await model.refresh() }
         .task { checkForNewWorkouts() }

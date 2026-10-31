@@ -53,7 +53,7 @@ public sealed class CloudGatewayFactory(HttpClient http, CloudKitOptions options
             .ToList();
         if (family.Count == 0)
         {
-            throw new BindingException("No family is shared with this Apple ID yet. Ask a parent to add you, then accept the invite in DigitalRewards on your iPhone.");
+            throw new BindingException("No family is shared with this Apple ID yet. Ask a parent to add you, then accept the invite in Go AFK on your iPhone.");
         }
 
         // A child normally sees exactly one family; take one whose Activity zone is shared too.
@@ -84,7 +84,7 @@ public sealed class CloudGatewayFactory(HttpClient http, CloudKitOptions options
 public static class SetupMessages
 {
     public const string ActivityNotShared =
-        "Your family isn't fully set up for this Apple ID yet. Open DigitalRewards on your iPhone and join with "
+        "Your family isn't fully set up for this Apple ID yet. Open Go AFK on your iPhone and join with "
         + "the code from your parent, then try again.";
 }
 

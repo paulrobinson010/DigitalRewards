@@ -34,7 +34,7 @@ enum CloudStoreError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .notSignedIn: return "Sign in to iCloud in Settings to use DigitalRewards."
+        case .notSignedIn: return "Sign in to iCloud in Settings to use Go AFK."
         case .shareURLMissing: return "iCloud didn't return a share link. Try again."
         case .participantNotFound(let who): return "No iCloud account found for \(who)."
         case .inviteNotFound: return "That code wasn't found. Check it and try again."
@@ -55,7 +55,7 @@ extension Error {
         }
         switch code {
         case .quotaExceeded:
-            return "This iCloud account is full, so DigitalRewards can't save. Free up iCloud storage "
+            return "This iCloud account is full, so Go AFK can't save. Free up iCloud storage "
                 + "(Settings › your name › iCloud) or share an iCloud+ plan with the family, then try again."
         case .notAuthenticated:
             return "Sign in to iCloud in Settings, then try again."

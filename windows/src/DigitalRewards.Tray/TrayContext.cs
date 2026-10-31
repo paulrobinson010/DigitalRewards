@@ -34,7 +34,7 @@ internal sealed class TrayContext : ApplicationContext
 
         _icon = new NotifyIcon
         {
-            Text = "DigitalRewards",
+            Text = "Go AFK",
             ContextMenuStrip = menu,
             Visible = true,
         };
@@ -71,7 +71,7 @@ internal sealed class TrayContext : ApplicationContext
         {
             _statusItem.Text = response.Error ?? "Service unavailable";
             SetIcon("!", Color.Gray);
-            _icon.Text = "DigitalRewards: service not running";
+            _icon.Text = "Go AFK: service not running";
             return;
         }
 
@@ -82,10 +82,10 @@ internal sealed class TrayContext : ApplicationContext
         {
             _statusItem.Text = "Not signed in to iCloud";
             SetIcon("?", Color.Gray);
-            _icon.Text = "DigitalRewards: sign in to iCloud";
+            _icon.Text = "Go AFK: sign in to iCloud";
             if (first && !_signingIn)
             {
-                _icon.ShowBalloonTip(10000, "DigitalRewards", "Sign in with your iCloud account to start using your minutes. Right-click the tray icon.", ToolTipIcon.Info);
+                _icon.ShowBalloonTip(10000, "Go AFK", "Sign in with your iCloud account to start using your minutes. Right-click the tray icon.", ToolTipIcon.Info);
             }
             return;
         }
@@ -94,10 +94,10 @@ internal sealed class TrayContext : ApplicationContext
         {
             _statusItem.Text = "Finish joining your family on your iPhone";
             SetIcon("!", Color.DarkOrange);
-            _icon.Text = "DigitalRewards: finish setup on your iPhone";
+            _icon.Text = "Go AFK: finish setup on your iPhone";
             if (first)
             {
-                _icon.ShowBalloonTip(10000, "DigitalRewards", SetupMessages.ActivityNotShared, ToolTipIcon.Warning);
+                _icon.ShowBalloonTip(10000, "Go AFK", SetupMessages.ActivityNotShared, ToolTipIcon.Warning);
             }
             return;
         }
@@ -105,14 +105,14 @@ internal sealed class TrayContext : ApplicationContext
         var name = string.IsNullOrEmpty(s.ChildName) ? "" : s.ChildName + ": ";
         var left = s.Blocked ? "no play time left" : $"{s.MinutesAvailable} min left";
         _statusItem.Text = $"{name}balance {Minutes(s.Balance)} · {left}";
-        _icon.Text = Truncate($"DigitalRewards: {Minutes(s.Balance)} · {left}", 63);
+        _icon.Text = Truncate($"Go AFK: {Minutes(s.Balance)} · {left}", 63);
         SetIcon(s.Blocked ? "0" : Short(s.MinutesAvailable), s.Blocked ? Color.Firebrick : s.Balance < 0 ? Color.DarkOrange : Color.SeaGreen);
 
         if (s.LastClosedAt is { } closedAt && closedAt != _lastClosedSeen)
         {
             if (_lastClosedSeen is not null || DateTimeOffset.UtcNow - closedAt < TimeSpan.FromSeconds(10))
             {
-                _icon.ShowBalloonTip(5000, "DigitalRewards", $"{s.LastClosedApp} was closed: no play time right now.", ToolTipIcon.Warning);
+                _icon.ShowBalloonTip(5000, "Go AFK", $"{s.LastClosedApp} was closed: no play time right now.", ToolTipIcon.Warning);
             }
             _lastClosedSeen = closedAt;
         }
@@ -121,7 +121,7 @@ internal sealed class TrayContext : ApplicationContext
         switch (warning.Kind)
         {
             case WarningKind.MinutesLeft:
-                _icon.ShowBalloonTip(8000, "DigitalRewards",
+                _icon.ShowBalloonTip(8000, "Go AFK",
                     warning.Minutes == 1 ? "1 minute of play time left. Time to save your game!" : $"{warning.Minutes} minutes of play time left.",
                     ToolTipIcon.Warning);
                 break;
@@ -156,7 +156,7 @@ internal sealed class TrayContext : ApplicationContext
         if (_status is { SignedIn: true } s)
         {
             var reason = s.Blocked ? "Play is blocked right now." : $"You can play for {s.MinutesAvailable} more minutes.";
-            _icon.ShowBalloonTip(6000, "DigitalRewards", $"Balance: {Minutes(s.Balance)}. {reason}", ToolTipIcon.Info);
+            _icon.ShowBalloonTip(6000, "Go AFK", $"Balance: {Minutes(s.Balance)}. {reason}", ToolTipIcon.Info);
         }
     }
 
@@ -173,12 +173,12 @@ internal sealed class TrayContext : ApplicationContext
             var result = await SignInFlow.RunAsync(CancellationToken.None);
             if (result.Ok)
             {
-                _icon.ShowBalloonTip(6000, "DigitalRewards", "Signed in. Your balance is now shown here.", ToolTipIcon.Info);
+                _icon.ShowBalloonTip(6000, "Go AFK", "Signed in. Your balance is now shown here.", ToolTipIcon.Info);
                 Update(result);
             }
             else
             {
-                MessageBox.Show(result.Error ?? "Sign-in failed.", "DigitalRewards", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(result.Error ?? "Sign-in failed.", "Go AFK", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
         finally

@@ -91,7 +91,7 @@ struct ChildDetailView: View {
         .sheet(isPresented: Binding(get: { newCode != nil }, set: { if !$0 { newCode = nil } })) {
             NavigationStack {
                 InviteCodeView(code: newCode ?? "",
-                               message: "On \(entry.state.name)'s iPhone, open DigitalRewards, choose \"I'm a child\" and enter:")
+                               message: "On \(entry.state.name)'s iPhone, open Go AFK, choose \"I'm a child\" and enter:")
             }
         }
     }

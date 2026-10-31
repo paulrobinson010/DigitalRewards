@@ -34,7 +34,7 @@ final class SessionUploader {
         var familyZone = await ChildLocator.findFamilyZone()
         if familyZone == nil { familyZone = WatchStore.shared.context?.familyZone }
         guard let family = familyZone else {
-            lastError = "Join your family in DigitalRewards on your iPhone first."
+            lastError = "Join your family in Go AFK on your iPhone first."
             return
         }
         let zone = ChildLocator.activityZone(for: family)

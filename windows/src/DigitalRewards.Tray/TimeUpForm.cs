@@ -5,7 +5,7 @@ internal sealed class TimeUpForm : Form
 {
     public TimeUpForm(string message)
     {
-        Text = "DigitalRewards";
+        Text = "Go AFK";
         TopMost = true;
         StartPosition = FormStartPosition.CenterScreen;
         FormBorderStyle = FormBorderStyle.FixedDialog;

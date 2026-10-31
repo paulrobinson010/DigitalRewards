@@ -25,7 +25,7 @@ struct AddChildView: View {
     var body: some View {
         if let code {
             InviteCodeView(code: code,
-                           message: "On \(name)'s iPhone, open DigitalRewards, choose \"I'm a child\" and enter:")
+                           message: "On \(name)'s iPhone, open Go AFK, choose \"I'm a child\" and enter:")
         } else {
             form
         }
@@ -103,7 +103,7 @@ struct TakeOverView: View {
     var body: some View {
         if let code {
             InviteCodeView(code: code,
-                           message: "On your child's iPhone, open DigitalRewards › ••• › Join with a new code and enter:")
+                           message: "On your child's iPhone, open Go AFK › ••• › Join with a new code and enter:")
         } else if let entry = model.entry(childId) {
             let ownerName = entry.family.parents.first {
                 $0.recordName == ParentInfo.recordName(userRecordName: entry.family.zone.ownerName)

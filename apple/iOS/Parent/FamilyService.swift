@@ -115,7 +115,7 @@ enum FamilyService {
     private static func shareChildZones(family: ZoneRef, activity: ZoneRef, childName: String,
                                         childLookup: CKUserIdentity.LookupInfo, parents: [ParentInfo],
                                         store: CloudStore) async throws -> [URL] {
-        let familyShare = try await shareZone(family, title: "\(childName) – DigitalRewards", childLookup: childLookup,
+        let familyShare = try await shareZone(family, title: "\(childName) – Go AFK", childLookup: childLookup,
                                               childPermission: .readOnly, parents: parents, store: store)
         let activityShare = try await shareZone(activity, title: "\(childName) – activity", childLookup: childLookup,
                                                 childPermission: .readWrite, parents: parents, store: store)

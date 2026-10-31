@@ -30,4 +30,4 @@ if ($RemoveData) {
     if (Test-Path $data) { Remove-Item -Path $data -Recurse -Force }
 }
 
-Write-Host 'DigitalRewards has been removed.'
+Write-Host 'Go AFK has been removed.'

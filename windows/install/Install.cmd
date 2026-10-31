@@ -1,5 +1,5 @@
 @echo off
-rem Double-click to install DigitalRewards. Asks for administrator rights.
+rem Double-click to install Go AFK. Asks for administrator rights.
 net session >nul 2>&1
 if errorlevel 1 (
     powershell -NoProfile -Command "Start-Process -Verb RunAs -FilePath '%~f0'"

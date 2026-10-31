@@ -47,6 +47,6 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: DigitalRewards-Windows-${{ env.CLOUDKIT_ENVIRONMENT }}
+          name: GoAFK-Windows-${{ env.CLOUDKIT_ENVIRONMENT }}
           path: package/
           retention-days: 30

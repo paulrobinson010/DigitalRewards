@@ -1,4 +1,6 @@
-# DigitalRewards
+# Go AFK
+
+*(Repository and code name: DigitalRewards.)*
 
 Kids earn gaming time with physical activity: every qualifying minute of activity
 (logged on Apple Watch) buys gaming minutes, 10 by default. Game time is enforced

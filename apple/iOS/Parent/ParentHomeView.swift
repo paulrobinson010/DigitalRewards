@@ -200,7 +200,7 @@ struct InviteCodeView: View {
             ForEach(notes, id: \.self) { note in
                 Text(note).font(.footnote).foregroundStyle(Theme.yellow).multilineTextAlignment(.center)
             }
-            ShareLink(item: "Your DigitalRewards code is \(code)") {
+            ShareLink(item: "Your Go AFK code is \(code)") {
                 Label("Send code", systemImage: "square.and.arrow.up")
             }
             .buttonStyle(.borderedProminent)

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="no-referrer">
-<title>DigitalRewards sign-in</title>
+<title>Go AFK sign-in</title>
 <style>
   :root { color-scheme: light dark; --bg: #f6f7f6; --fg: #1d2420; --muted: #5d6a63; }
   @media (prefers-color-scheme: dark) { :root { --bg: #121614; --fg: #e8ece9; --muted: #9aa69f; } }
@@ -17,10 +17,10 @@
 <body>
 <main>
   <h1 id="title">Finishing sign-in…</h1>
-  <p id="detail">Handing your sign-in to DigitalRewards on this PC.</p>
+  <p id="detail">Handing your sign-in to Go AFK on this PC.</p>
 </main>
 <script>
-  // Apple's CloudKit sign-in must call back to an https page, but the DigitalRewards
+  // Apple's CloudKit sign-in must call back to an https page, but the Go AFK
   // tray app listens on http://localhost. This page only forwards the token to this
   // same PC: it never sends it anywhere else.
   (function () {
@@ -29,7 +29,7 @@
     if (!params.get("ckWebAuthToken") && !params.get("ckSession")) {
       document.getElementById("title").textContent = "Nothing to do here";
       document.getElementById("detail").textContent =
-        "This page finishes iCloud sign-in for the DigitalRewards PC app. Start sign-in from the tray icon.";
+        "This page finishes iCloud sign-in for the Go AFK PC app. Start sign-in from the tray icon.";
       return;
     }
     history.replaceState(null, "", location.pathname); // keep the token out of history

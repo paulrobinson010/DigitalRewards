@@ -39,7 +39,7 @@ struct StartView: View {
                 .foregroundStyle(Theme.yellow)
             #endif
             if store.context == nil && !Self.hidesJoinHint {
-                Text("Open DigitalRewards on your iPhone and join your family first. Workouts will still be saved.")
+                Text("Open Go AFK on your iPhone and join your family first. Workouts will still be saved.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }

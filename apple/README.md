@@ -1,4 +1,4 @@
-# DigitalRewards — Apple apps
+# Go AFK — Apple apps
 
 Two apps in one Xcode project, plus a Swift package:
 

@@ -82,18 +82,18 @@ if (-not [Diagnostics.EventLog]::SourceExists($ServiceName)) {
 $binPath = '"' + (Join-Path $InstallDir 'DigitalRewards.Service.exe') + '"'
 if (-not $existing) {
     Write-Host 'Registering the service ...'
-    & sc.exe create $ServiceName binPath= $binPath start= auto obj= LocalSystem DisplayName= 'DigitalRewards' | Out-Null
+    & sc.exe create $ServiceName binPath= $binPath start= auto obj= LocalSystem DisplayName= 'Go AFK' | Out-Null
     if ($LASTEXITCODE -ne 0) { throw 'sc.exe create failed' }
 } else {
-    & sc.exe config $ServiceName binPath= $binPath start= auto obj= LocalSystem | Out-Null
+    & sc.exe config $ServiceName binPath= $binPath start= auto obj= LocalSystem DisplayName= 'Go AFK' | Out-Null
 }
-& sc.exe description $ServiceName 'Earn gaming time with exercise: counts play time and closes apps when time runs out.' | Out-Null
+& sc.exe description $ServiceName 'Go AFK: earn gaming time with exercise. Counts play time and closes apps when time runs out.' | Out-Null
 # Restart after 5 s on every failure; reset the failure count daily. Also restart on non-crash failures.
 & sc.exe failure $ServiceName reset= 86400 actions= restart/5000/restart/5000/restart/5000 | Out-Null
 & sc.exe failureflag $ServiceName 1 | Out-Null
 
 Start-Service -Name $ServiceName
 Write-Host ''
-Write-Host 'DigitalRewards is installed and running.'
+Write-Host 'Go AFK is installed and running.'
 Write-Host 'Next: each child logs in to their own STANDARD (non-admin) Windows account,'
-Write-Host 'right-clicks the DigitalRewards tray icon and chooses "Sign in to iCloud...".'
+Write-Host 'right-clicks the Go AFK tray icon and chooses "Sign in to iCloud...".'

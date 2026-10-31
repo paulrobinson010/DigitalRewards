@@ -87,7 +87,7 @@ struct InviteParentView: View {
     var body: some View {
         if let result {
             InviteCodeView(code: result.code,
-                           message: "On \(name)'s iPhone, open DigitalRewards, choose \"I'm a parent\", set up, then Parents › Join a family with a code:",
+                           message: "On \(name)'s iPhone, open Go AFK, choose \"I'm a parent\", set up, then Parents › Join a family with a code:",
                            notes: result.skipped.isEmpty ? []
                                : ["Not shared: \(result.skipped.joined(separator: ", ")). Ask the parent who added them to invite \(name)."])
         } else {

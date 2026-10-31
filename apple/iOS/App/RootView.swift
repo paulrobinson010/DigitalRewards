@@ -36,7 +36,7 @@ struct ModePickerView: View {
             Spacer()
             PixelAlien(animated: true)
                 .frame(height: 90)
-            Text("DigitalRewards")
+            Text("Go AFK")
                 .font(Theme.label(34))
                 .foregroundStyle(.white)
             Text("Move to earn gaming time.")
