@@ -258,6 +258,83 @@ public class WarningTrackerCooldownTests
     }
 }
 
+public class ActivityTrackerTests
+{
+    private static readonly DateTimeOffset T0 = new(2026, 11, 1, 22, 0, 0, TimeSpan.Zero);
+
+    [Fact]
+    public void MouseJitterDoesNotCountButRealMovementDoes()
+    {
+        var a = new ActivityTracker(T0);
+        // A sensitive mouse drifting a pixel or two every few seconds all night.
+        for (var i = 1; i <= 600; i++)
+        {
+            a.MouseMove(T0.AddSeconds(i * 3), 500 + i % 3, 400 + i % 2);
+        }
+        Assert.Equal(1800, a.IdleSeconds(T0.AddSeconds(1800)));
+
+        var t = T0.AddSeconds(1801);
+        a.MouseMove(t, 500, 400);
+        a.MouseMove(t.AddMilliseconds(100), 540, 410);
+        Assert.Equal(0, a.IdleSeconds(t.AddMilliseconds(100)));
+    }
+
+    [Fact]
+    public void SlowCreepOverManySecondsDoesNotCount()
+    {
+        var a = new ActivityTracker(T0);
+        for (var i = 1; i <= 100; i++)
+        {
+            a.MouseMove(T0.AddSeconds(i), 500 + i * 5, 400); // 5 px a second
+        }
+        Assert.Equal(100, a.IdleSeconds(T0.AddSeconds(100)));
+    }
+
+    [Fact]
+    public void KeysClicksAndWheelCount()
+    {
+        var a = new ActivityTracker(T0);
+        a.KeyDown(T0.AddSeconds(50));
+        Assert.Equal(10, a.IdleSeconds(T0.AddSeconds(60)));
+        a.MouseButtonOrWheel(T0.AddSeconds(100));
+        Assert.Equal(0, a.IdleSeconds(T0.AddSeconds(100)));
+    }
+
+    [Fact]
+    public void ControllerUseCountsButStickDriftDoesNot()
+    {
+        var a = new ActivityTracker(T0);
+        var rest = new GamepadState(0, 0, 0, 1200, -900, 300, 0);
+        a.Gamepad(T0.AddSeconds(1), 0, rest);
+        a.Gamepad(T0.AddSeconds(2), 0, rest with { LeftX = 1500 }); // drift
+        Assert.Equal(60, a.IdleSeconds(T0.AddSeconds(60)));
+
+        a.Gamepad(T0.AddSeconds(70), 0, rest with { Buttons = 0x1000 }); // A pressed
+        Assert.Equal(0, a.IdleSeconds(T0.AddSeconds(70)));
+        a.Gamepad(T0.AddSeconds(80), 0, rest with { Buttons = 0x1000, LeftY = 20000 }); // walking
+        Assert.Equal(0, a.IdleSeconds(T0.AddSeconds(80)));
+    }
+
+    [Fact]
+    public void FirstControllerReadingIsNotActivity()
+    {
+        var a = new ActivityTracker(T0);
+        a.Gamepad(T0.AddSeconds(30), 1, new GamepadState(0x1000, 0, 0, 0, 0, 0, 0));
+        Assert.Equal(30, a.IdleSeconds(T0.AddSeconds(30)));
+    }
+
+    [Fact]
+    public void DisplayOffIsIdleAndWakingIsActivity()
+    {
+        var a = new ActivityTracker(T0);
+        a.KeyDown(T0.AddSeconds(10));
+        a.DisplayChanged(T0.AddSeconds(20), on: false);
+        Assert.Equal(ActivityTracker.DisplayOffIdleSeconds, a.IdleSeconds(T0.AddSeconds(21)));
+        a.DisplayChanged(T0.AddSeconds(500), on: true);
+        Assert.Equal(0, a.IdleSeconds(T0.AddSeconds(500)));
+    }
+}
+
 public class ChildSyncTests
 {
     private static readonly DateTimeOffset Now = new(2026, 10, 28, 17, 0, 0, TimeSpan.Zero);

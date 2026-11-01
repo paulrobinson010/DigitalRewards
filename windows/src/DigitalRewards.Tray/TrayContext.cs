@@ -15,6 +15,7 @@ internal sealed class TrayContext : ApplicationContext
     private readonly ToolStripMenuItem _signInItem;
     private readonly System.Windows.Forms.Timer _timer;
     private readonly WarningTracker _warnings = new();
+    private readonly InputMonitor _input = new();
     private AgentStatus? _status;
     private bool _busy;
     private bool _signingIn;
@@ -55,7 +56,8 @@ internal sealed class TrayContext : ApplicationContext
         _busy = true;
         try
         {
-            var report = await Task.Run(ForegroundProbe.Capture);
+            var idle = _input.IdleSeconds();
+            var report = await Task.Run(() => ForegroundProbe.Capture(idle));
             var response = await ServiceClient.SendAsync(new AgentRequest { Type = AgentRequestType.Report, Report = report }, TimeSpan.FromSeconds(5));
             Update(response);
         }
@@ -232,6 +234,7 @@ internal sealed class TrayContext : ApplicationContext
             _icon.Dispose();
             _currentIcon?.Dispose();
             _timeUp?.Dispose();
+            _input.Dispose();
         }
         base.Dispose(disposing);
     }

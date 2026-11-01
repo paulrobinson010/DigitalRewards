@@ -5,10 +5,11 @@ namespace DigitalRewards.Tray;
 /// <summary>Collects what the user is doing: foreground process, idle time, windowed processes.</summary>
 internal static class ForegroundProbe
 {
-    public static ForegroundReport Capture() => new()
+    /// <param name="idleSeconds">From <see cref="InputMonitor.IdleSeconds"/>.</param>
+    public static ForegroundReport Capture(int idleSeconds) => new()
     {
         Foreground = ForegroundProcess(),
-        IdleSeconds = Native.IdleSeconds(),
+        IdleSeconds = idleSeconds,
         Windows = WindowedProcesses(),
     };
 
