@@ -6,6 +6,9 @@ on:
     paths: ["windows/**", "shared/**", ".github/workflows/windows.yml"]
   workflow_dispatch:
 
+permissions:
+  contents: write # to publish releases for automatic updates
+
 jobs:
   build:
     runs-on: windows-latest
@@ -13,6 +16,9 @@ jobs:
       # Must match the CloudKit environment the iPhone app uses: TestFlight and
       # App Store builds use production; builds run from Xcode use development.
       CLOUDKIT_ENVIRONMENT: ${{ vars.CLOUDKIT_ENVIRONMENT || 'production' }}
+      # Each build gets a higher version; installed PCs update to the newest release.
+      VERSION: 1.0.${{ github.run_number }}
+      PACKAGE: GoAFK-Windows-${{ vars.CLOUDKIT_ENVIRONMENT || 'production' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -26,14 +32,15 @@ jobs:
       - name: Publish
         run: |
           foreach ($project in 'DigitalRewards.Service', 'DigitalRewards.Tray') {
-            dotnet publish "windows/src/$project/$project.csproj" -c Release -r win-x64 --self-contained true -o package/app
+            dotnet publish "windows/src/$project/$project.csproj" -c Release -r win-x64 --self-contained true -o package/app -p:Version=$env:VERSION
             if ($LASTEXITCODE -ne 0) { exit 1 }
           }
           Copy-Item windows/install/Install.cmd, windows/install/Install.ps1, windows/install/Uninstall.cmd, windows/install/Uninstall.ps1 package/
 
-      - name: Add CloudKit settings
+      - name: Add CloudKit and update settings
         env:
           CLOUDKIT_API_TOKEN: ${{ secrets.CLOUDKIT_API_TOKEN }}
+          UPDATE_PUBLIC_KEY: ${{ secrets.UPDATE_PUBLIC_KEY }}
         run: |
           if (-not $env:CLOUDKIT_API_TOKEN) {
             Write-Error 'Add the CLOUDKIT_API_TOKEN repository secret (Settings > Secrets and variables > Actions).'
@@ -43,10 +50,49 @@ jobs:
           $settings = Get-Content $path -Raw | ConvertFrom-Json
           $settings.CloudKit.ApiToken = $env:CLOUDKIT_API_TOKEN
           $settings.CloudKit.Environment = $env:CLOUDKIT_ENVIRONMENT
+          $settings.Update.Repository = '${{ github.repository }}'
+          $settings.Update.PublicKey = "$env:UPDATE_PUBLIC_KEY"
           $settings | ConvertTo-Json -Depth 10 | Set-Content -Path $path -Encoding UTF8
 
       - uses: actions/upload-artifact@v4
         with:
-          name: GoAFK-Windows-${{ env.CLOUDKIT_ENVIRONMENT }}
+          name: ${{ env.PACKAGE }}
           path: package/
           retention-days: 30
+
+      - name: Publish signed release for automatic updates
+        if: github.ref == 'refs/heads/main'
+        env:
+          UPDATE_SIGNING_KEY: ${{ secrets.UPDATE_SIGNING_KEY }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if (-not $env:UPDATE_SIGNING_KEY) {
+            Write-Warning 'No UPDATE_SIGNING_KEY secret: skipping the release, so installed PCs will not update automatically.'
+            exit 0
+          }
+          # The release is public, so its copy of the settings carries no API token: an updating PC
+          # keeps the token it already has (UpdateApplier). New PCs install from the artifact above.
+          Copy-Item package release -Recurse
+          $path = 'release/app/appsettings.json'
+          $settings = Get-Content $path -Raw | ConvertFrom-Json
+          $settings.CloudKit.ApiToken = ''
+          $settings | ConvertTo-Json -Depth 10 | Set-Content -Path $path -Encoding UTF8
+
+          $zip = "$env:PACKAGE.zip"
+          Compress-Archive -Path release/* -DestinationPath $zip
+          $manifest = [ordered]@{
+            version = $env:VERSION
+            asset   = $zip
+            sha256  = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLowerInvariant()
+            size    = (Get-Item $zip).Length
+          } | ConvertTo-Json -Compress
+          [IO.File]::WriteAllText("$PWD/update.json", $manifest)
+
+          $ecdsa = [System.Security.Cryptography.ECDsa]::Create()
+          $ecdsa.ImportFromPem($env:UPDATE_SIGNING_KEY)
+          $signature = $ecdsa.SignData([IO.File]::ReadAllBytes("$PWD/update.json"), [System.Security.Cryptography.HashAlgorithmName]::SHA256)
+          [IO.File]::WriteAllText("$PWD/update.json.sig", [Convert]::ToBase64String($signature))
+
+          gh release create "windows-v$env:VERSION" $zip update.json update.json.sig `
+            --title "Go AFK for Windows $env:VERSION" `
+            --notes "Installed PCs pick this up automatically within a few hours. This package has no API token, so it can't set up a new PC: install new PCs from the workflow artifact."

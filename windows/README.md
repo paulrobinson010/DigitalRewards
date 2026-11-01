@@ -97,6 +97,37 @@ To install:
 2. Unzip it on the PC and double-click **Install.cmd**. Accept the administrator prompt.
 3. To remove it later: double-click **Uninstall.cmd**.
 
+## Automatic updates
+
+Installed PCs update themselves. Every GitHub build on `main` gets a version number (`1.0.<run>`)
+and is published as a GitHub Release (`windows-v1.0.<run>`) with the package zip, `update.json`
+(version, file name, size, SHA-256) and `update.json.sig`. The service checks for a newer release
+5 minutes after starting and then every 6 hours (`Update` in `appsettings.json`). It only accepts
+an update whose manifest is signed by the build's private key, and whose download matches the
+manifest. It then stops itself, swaps the files (keeping a backup and restoring it on failure)
+and starts again. Progress is logged to `%ProgramData%\DigitalRewards\update.log`.
+
+Releases are public, so **the release package has no CloudKit API token**: when an update is
+applied the PC keeps the token (and environment) from its existing settings. Set up new PCs from
+the workflow **artifact**, which does include the token.
+
+One-time setup:
+1. Make a signing key pair (on a Mac or with Git Bash):
+   ```sh
+   openssl ecparam -name prime256v1 -genkey -noout -out goafk-update.pem
+   openssl ec -in goafk-update.pem -pubout -out goafk-update.pub.pem
+   ```
+2. Add two repository secrets (Settings › Secrets and variables › Actions):
+   - `UPDATE_SIGNING_KEY`: the whole contents of `goafk-update.pem` (private: keep the file somewhere
+     safe and never commit it).
+   - `UPDATE_PUBLIC_KEY`: the whole contents of `goafk-update.pub.pem`.
+3. Run the **Windows app** workflow, then install that build's artifact on each PC once by hand.
+   Every later build reaches the PCs automatically.
+
+Without `UPDATE_SIGNING_KEY` the workflow still builds the artifact but publishes no release; without
+`UPDATE_PUBLIC_KEY` an installed PC never updates. If antivirus software needs an exception, make it
+for the whole install folder (`C:\Program Files\DigitalRewards`) so updated files stay allowed.
+
 ## Install on a PC (build it yourself)
 
 Prerequisites:

@@ -3,6 +3,11 @@ using DigitalRewards.Enforcement;
 using DigitalRewards.Service;
 using Microsoft.Extensions.Options;
 
+if (args.Length == 3 && args[0] == UpdateApplier.Argument)
+{
+    return UpdateApplier.Run(args[1], args[2]);
+}
+
 var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings
 {
     Args = args,
@@ -12,6 +17,7 @@ builder.Services.AddWindowsService(o => o.ServiceName = "DigitalRewards");
 
 builder.Services.Configure<CloudKitOptions>(builder.Configuration.GetSection("CloudKit"));
 builder.Services.AddHttpClient("cloudkit", c => c.Timeout = TimeSpan.FromSeconds(30));
+builder.Services.AddHttpClient("updates", c => c.Timeout = TimeSpan.FromMinutes(10));
 
 var root = SecureStorage.EnsurePrivateDirectory(SecureStorage.Root);
 var deviceId = SecureStorage.DeviceId(root);
@@ -51,7 +57,13 @@ builder.Services.AddSingleton(new AgentPipeOptions
     AgentPath = agentPath,
     VerifyAgentPath = enforcerConfig.GetValue("VerifyAgentPath", true),
 });
+var updateOptions = builder.Configuration.GetSection("Update").Get<UpdateOptions>() ?? new UpdateOptions();
+builder.Services.AddSingleton(updateOptions);
+builder.Services.AddSingleton(sp => new UpdateChecker(
+    sp.GetRequiredService<IHttpClientFactory>().CreateClient("updates"), updateOptions));
+builder.Services.AddHostedService<UpdateWorker>();
 builder.Services.AddHostedService<EnforcerWorker>();
 builder.Services.AddHostedService<AgentPipeServer>();
 
 builder.Build().Run();
+return 0;
