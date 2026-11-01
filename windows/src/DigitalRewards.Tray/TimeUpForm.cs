@@ -36,9 +36,12 @@ internal sealed class TimeUpForm : Form
             MaximumSize = new Size(420, 0),
             Margin = new Padding(0, 8, 0, 16),
         });
-        var ok = new Button { Text = "OK", AutoSize = true, DialogResult = DialogResult.OK };
+        // The form is shown modeless, so DialogResult alone wouldn't close it: close explicitly.
+        var ok = new Button { Text = "OK", AutoSize = true };
+        ok.Click += (_, _) => Close();
         layout.Controls.Add(ok);
         AcceptButton = ok;
+        CancelButton = ok; // Esc closes it too.
         Controls.Add(layout);
     }
 }

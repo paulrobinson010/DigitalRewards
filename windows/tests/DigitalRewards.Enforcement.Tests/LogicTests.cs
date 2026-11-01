@@ -239,6 +239,25 @@ public class WarningTrackerTests
     }
 }
 
+public class WarningTrackerCooldownTests
+{
+    [Fact]
+    public void TimeUpDoesNotRepeatWithinCooldownWhenBlockFlickers()
+    {
+        var clock = new ManualClock(new DateTimeOffset(2026, 11, 1, 17, 0, 0, TimeSpan.Zero));
+        var w = new WarningTracker(clock: clock);
+        Assert.Equal(WarningKind.TimeUp, w.Update(0, blocked: true, playing: true).Kind);
+
+        clock.Advance(TimeSpan.FromMinutes(2));
+        w.Update(1, blocked: false, playing: true);
+        Assert.Equal(WarningKind.None, w.Update(0, blocked: true, playing: true).Kind);
+
+        clock.Advance(WarningTracker.TimeUpCooldown);
+        w.Update(1, blocked: false, playing: true);
+        Assert.Equal(WarningKind.TimeUp, w.Update(0, blocked: true, playing: true).Kind);
+    }
+}
+
 public class ChildSyncTests
 {
     private static readonly DateTimeOffset Now = new(2026, 10, 28, 17, 0, 0, TimeSpan.Zero);
