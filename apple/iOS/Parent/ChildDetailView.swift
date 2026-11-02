@@ -109,28 +109,40 @@ struct AdjustmentView: View {
     let childId: String
     @Environment(ParentModel.self) var model
     @Environment(\.dismiss) var dismiss
-    @State var minutes = 30
+    @State var minutes = 0
     @State var note = ""
     @State var isSaving = false
     @State var error: String?
 
+    /// Each tap adds to the running total (+1 h five times is +5 h).
     private let presets = [-60, -30, -15, 15, 30, 60]
+    private let limit = 24 * 60
+
+    private static func label(_ p: Int) -> String {
+        let sign = p > 0 ? "+" : "−"
+        let size = abs(p)
+        return size % 60 == 0 ? "\(sign)\(size / 60) h" : "\(sign)\(size)m"
+    }
 
     var body: some View {
         Form {
             Section {
                 HStack {
                     ForEach(presets, id: \.self) { p in
-                        Button(p > 0 ? "+\(p)" : "\(p)") { minutes = p }
+                        Button(Self.label(p)) { minutes = min(limit, max(-limit, minutes + p)) }
                             .buttonStyle(.bordered)
                             .tint(p > 0 ? Theme.green : Theme.magenta)
                             .font(.caption)
                     }
                 }
-                Stepper(value: $minutes, in: -600...600, step: 5) {
+                Stepper(value: $minutes, in: -limit...limit, step: 5) {
                     Text(Fmt.signed(minutes))
                         .font(.title3.bold())
                         .foregroundStyle(minutes >= 0 ? Theme.green : Theme.magenta)
+                }
+                if minutes != 0 {
+                    Button("Reset to 0", role: .destructive) { minutes = 0 }
+                        .font(.footnote)
                 }
             }
             Section("Why?") {
