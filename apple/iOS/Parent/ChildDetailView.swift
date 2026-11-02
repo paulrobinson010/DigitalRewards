@@ -113,10 +113,12 @@ struct AdjustmentView: View {
     @State var note = ""
     @State var isSaving = false
     @State var error: String?
+    @State var confirmLarge = false
 
-    /// Each tap adds to the running total (+1 h five times is +5 h).
+    /// Each tap adds to the running total (+1 h five times is +5 h). There's no cap; adjustments
+    /// over `confirmAbove` minutes ask for confirmation so a slip of the finger is caught.
     private let presets = [-60, -30, -15, 15, 30, 60]
-    private let limit = 24 * 60
+    private let confirmAbove = 10 * 60
 
     private static func label(_ p: Int) -> String {
         let sign = p > 0 ? "+" : "−"
@@ -129,16 +131,20 @@ struct AdjustmentView: View {
             Section {
                 HStack {
                     ForEach(presets, id: \.self) { p in
-                        Button(Self.label(p)) { minutes = min(limit, max(-limit, minutes + p)) }
+                        Button(Self.label(p)) { minutes += p }
                             .buttonStyle(.bordered)
                             .tint(p > 0 ? Theme.green : Theme.magenta)
                             .font(.caption)
                     }
                 }
-                Stepper(value: $minutes, in: -limit...limit, step: 5) {
+                Stepper {
                     Text(Fmt.signed(minutes))
                         .font(.title3.bold())
                         .foregroundStyle(minutes >= 0 ? Theme.green : Theme.magenta)
+                } onIncrement: {
+                    minutes += 5
+                } onDecrement: {
+                    minutes -= 5
                 }
                 if minutes != 0 {
                     Button("Reset to 0", role: .destructive) { minutes = 0 }
@@ -159,10 +165,30 @@ struct AdjustmentView: View {
                 Button("Cancel") { dismiss() }
             }
             ToolbarItem(placement: .confirmationAction) {
-                Button("Save") { Task { await save() } }
+                Button("Save") {
+                    if abs(minutes) > confirmAbove {
+                        confirmLarge = true
+                    } else {
+                        Task { await save() }
+                    }
+                }
                     .disabled(minutes == 0 || note.trimmed.isEmpty || isSaving)
             }
         }
+        .confirmationDialog(confirmTitle, isPresented: $confirmLarge, titleVisibility: .visible) {
+            Button(minutes >= 0 ? "Add \(Fmt.minutes(abs(minutes)))" : "Remove \(Fmt.minutes(abs(minutes)))",
+                   role: minutes < 0 ? .destructive : nil) {
+                Task { await save() }
+            }
+            Button("Cancel", role: .cancel) {}
+        }
+    }
+
+    private var confirmTitle: String {
+        let name = model.entry(childId)?.state.name ?? "your child"
+        return minutes >= 0
+            ? "Add \(Fmt.minutes(minutes)) to \(name)?"
+            : "Remove \(Fmt.minutes(-minutes)) from \(name)?"
     }
 
     private func save() async {
