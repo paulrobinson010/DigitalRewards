@@ -54,7 +54,7 @@ internal static class ForegroundProbe
             }
             return true;
         }, IntPtr.Zero);
-        return pids.Select(Describe).OfType<ProcessRef>().ToList();
+        return pids.Select(pid => Describe(pid)).OfType<ProcessRef>().ToList();
     }
 
     private static ProcessRef? Describe(int pid, string? title = null)
