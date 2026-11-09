@@ -21,7 +21,8 @@ internal static class ForegroundProbe
             return null;
         }
         Native.GetWindowThreadProcessId(hwnd, out var pid);
-        var p = Describe(pid);
+        var title = WindowTitle(hwnd);
+        var p = Describe(pid, title);
         if (p is not null && p.Exe.Equals("applicationframehost.exe", StringComparison.OrdinalIgnoreCase))
         {
             // Store apps run inside a frame window; the real app owns a child window.
@@ -29,7 +30,7 @@ internal static class ForegroundProbe
             Native.EnumChildWindows(hwnd, (child, _) =>
             {
                 Native.GetWindowThreadProcessId(child, out var childPid);
-                if (childPid != pid && Describe(childPid) is { } c)
+                if (childPid != pid && Describe(childPid, title) is { } c)
                 {
                     inner = c;
                     return false;
@@ -56,13 +57,24 @@ internal static class ForegroundProbe
         return pids.Select(Describe).OfType<ProcessRef>().ToList();
     }
 
-    private static ProcessRef? Describe(int pid)
+    private static ProcessRef? Describe(int pid, string? title = null)
     {
         if (pid <= 0)
         {
             return null;
         }
         var path = Native.ProcessImagePath(pid);
-        return path is null ? null : new ProcessRef(pid, Path.GetFileName(path), path);
+        return path is null ? null : new ProcessRef(pid, Path.GetFileName(path), path, Native.PackageFamilyName(pid), title);
+    }
+
+    private static string? WindowTitle(IntPtr hwnd)
+    {
+        var length = Native.GetWindowTextLength(hwnd);
+        if (length <= 0)
+        {
+            return null;
+        }
+        var sb = new System.Text.StringBuilder(length + 1);
+        return Native.GetWindowText(hwnd, sb, sb.Capacity) > 0 ? sb.ToString() : null;
     }
 }

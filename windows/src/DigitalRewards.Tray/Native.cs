@@ -41,6 +41,9 @@ internal static class Native
     [DllImport("user32.dll", CharSet = CharSet.Unicode)]
     public static extern int GetWindowTextLength(IntPtr hWnd);
 
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    public static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
+
     [DllImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     public static extern bool GetLastInputInfo(ref LASTINPUTINFO plii);
@@ -72,6 +75,34 @@ internal static class Native
             var size = 1024;
             var sb = new StringBuilder(size);
             return QueryFullProcessImageName(handle, 0, sb, ref size) ? sb.ToString(0, size) : null;
+        }
+        finally
+        {
+            CloseHandle(handle);
+        }
+    }
+
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
+    private static extern int GetPackageFamilyName(IntPtr hProcess, ref uint packageFamilyNameLength, StringBuilder? packageFamilyName);
+
+    /// <summary>The package family name of a Store (MSIX/UWP) app's process; null for ordinary programs.</summary>
+    public static string? PackageFamilyName(int pid)
+    {
+        var handle = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, pid);
+        if (handle == IntPtr.Zero)
+        {
+            return null;
+        }
+        try
+        {
+            uint length = 0;
+            const int ErrorInsufficientBuffer = 122;
+            if (GetPackageFamilyName(handle, ref length, null) != ErrorInsufficientBuffer || length == 0)
+            {
+                return null; // APPMODEL_ERROR_NO_PACKAGE: not a packaged app
+            }
+            var sb = new StringBuilder((int)length);
+            return GetPackageFamilyName(handle, ref length, sb) == 0 ? sb.ToString() : null;
         }
         finally
         {

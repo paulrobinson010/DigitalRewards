@@ -35,7 +35,19 @@ public enum AgentRequestType
     CompleteSignIn,
 }
 
-public sealed record ProcessRef(int Pid, string Exe, string? Path);
+/// <param name="Package">Package family name for Store (MSIX/UWP) apps, which often run inside a generic
+/// Windows host such as WWAHost.exe; null for ordinary programs.</param>
+/// <param name="Title">Window title, used as the display name for Store apps.</param>
+public sealed record ProcessRef(int Pid, string Exe, string? Path, string? Package = null, string? Title = null)
+{
+    /// <summary>What the parent's allow list and the ledger know the app by: the package for Store apps, else the exe.</summary>
+    public string AppKey => string.IsNullOrEmpty(Package) ? AllowPolicy.Normalize(Exe) : Package.ToLowerInvariant();
+
+    /// <summary>A readable name: the window title or package name for Store apps, else the exe.</summary>
+    public string DisplayName => string.IsNullOrEmpty(Package)
+        ? AllowPolicy.Normalize(Exe)
+        : !string.IsNullOrWhiteSpace(Title) ? Title.Trim() : Package.Split('_')[0];
+}
 
 /// <summary>What the user is doing right now, as seen by the agent in the user session.</summary>
 public sealed record ForegroundReport

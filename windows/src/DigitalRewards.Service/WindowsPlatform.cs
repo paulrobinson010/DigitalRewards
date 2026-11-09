@@ -109,7 +109,7 @@ internal sealed class WindowsProcessController : IProcessController
                     }
                     var path = ProcessImagePath(p.Id);
                     var exe = path is null ? p.ProcessName + ".exe" : Path.GetFileName(path);
-                    list.Add(new ProcessRef(p.Id, exe, path));
+                    list.Add(new ProcessRef(p.Id, exe, path, PackageFamilyName(p.Id)));
                 }
                 catch (Exception e) when (e is InvalidOperationException or Win32Exception)
                 {

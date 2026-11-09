@@ -191,14 +191,21 @@ public sealed class Enforcer
 
     private void RememberApp(Runtime rt, ProcessRef? fg)
     {
-        if (fg is null || AllowPolicy.SystemExecutables.Contains(AllowPolicy.Normalize(fg.Exe)))
+        if (fg is null)
         {
             return;
         }
-        var exe = AllowPolicy.Normalize(fg.Exe);
-        if (!rt.State.SeenApps.ContainsKey(exe))
+        var packaged = !string.IsNullOrEmpty(fg.Package);
+        if (packaged ? AllowPolicy.IsSystemPackage(fg.AppKey) : AllowPolicy.SystemExecutables.Contains(AllowPolicy.Normalize(fg.Exe)))
         {
-            rt.State.SeenApps[exe] = _apps.Describe(fg.Path) ?? exe;
+            return;
+        }
+        // Store apps are listed by package (what the allow list matches), named by their window title.
+        var key = fg.AppKey;
+        var name = packaged ? fg.DisplayName : _apps.Describe(fg.Path) ?? key;
+        if (!rt.State.SeenApps.TryGetValue(key, out var known) || (packaged && known == key))
+        {
+            rt.State.SeenApps[key] = name;
             rt.Dirty = true;
         }
     }
@@ -287,7 +294,7 @@ public sealed class Enforcer
         {
             if (_processes.Kill(p.Pid))
             {
-                rt.LastClosedApp = _apps.Describe(p.Path) ?? p.Exe;
+                rt.LastClosedApp = string.IsNullOrEmpty(p.Package) ? _apps.Describe(p.Path) ?? p.Exe : p.DisplayName;
                 rt.LastClosedAt = now;
                 _log.LogInformation("Closed {Exe} ({Pid}) in session {Session}: no play time left", p.Exe, p.Pid, session.SessionId);
             }

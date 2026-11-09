@@ -140,6 +140,34 @@ internal static partial class NativeMethods
     public static extern bool GetNamedPipeClientSessionId(IntPtr pipe, out int clientSessionId);
 
     /// <summary>Full image path of a process, or null if it can't be opened.</summary>
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
+    private static extern int GetPackageFamilyName(IntPtr hProcess, ref uint packageFamilyNameLength, StringBuilder? packageFamilyName);
+
+    /// <summary>The package family name of a Store (MSIX/UWP) app's process; null for ordinary programs.</summary>
+    public static string? PackageFamilyName(int pid)
+    {
+        var handle = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, pid);
+        if (handle == IntPtr.Zero)
+        {
+            return null;
+        }
+        try
+        {
+            uint length = 0;
+            const int ErrorInsufficientBuffer = 122;
+            if (GetPackageFamilyName(handle, ref length, null) != ErrorInsufficientBuffer || length == 0)
+            {
+                return null; // APPMODEL_ERROR_NO_PACKAGE: not a packaged app
+            }
+            var sb = new StringBuilder((int)length);
+            return GetPackageFamilyName(handle, ref length, sb) == 0 ? sb.ToString() : null;
+        }
+        finally
+        {
+            CloseHandle(handle);
+        }
+    }
+
     public static string? ProcessImagePath(int pid)
     {
         var handle = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, pid);

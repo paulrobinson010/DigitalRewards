@@ -49,11 +49,11 @@ public sealed class PlayMinuteAccountant
         if (_lastReportAt is { } at && now - at <= _options.ReportFreshness)
         {
             var fg = _lastReport?.Foreground;
-            if (fg is null || _lastReport!.IdleSeconds >= _options.IdleThreshold.TotalSeconds || policy.IsAllowed(fg.Exe, fg.Path))
+            if (fg is null || _lastReport!.IdleSeconds >= _options.IdleThreshold.TotalSeconds || policy.IsAllowed(fg))
             {
                 return null;
             }
-            return AllowPolicy.Normalize(fg.Exe);
+            return fg.DisplayName;
         }
         var silentSince = _lastReportAt ?? _activeSince;
         return now - silentSince > _options.AgentSilenceCountsAsPlay ? AgentMissingApp : null;

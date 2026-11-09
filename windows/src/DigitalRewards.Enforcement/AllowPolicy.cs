@@ -3,6 +3,8 @@ namespace DigitalRewards.Enforcement;
 /// <summary>
 /// Decides whether an executable is free to use (no play time, never closed).
 /// Allowed: Windows components, the DigitalRewards agent, and the parent's allow list for this PC.
+/// Store apps are judged by their package, not their host process: many run inside WWAHost.exe or
+/// similar under %SystemRoot%, which would otherwise make them look like part of Windows.
 /// </summary>
 public sealed class AllowPolicy
 {
@@ -22,6 +24,14 @@ public sealed class AllowPolicy
         "digitalrewards.tray.exe", "digitalrewards.service.exe",
     };
 
+    /// <summary>Package family name prefixes of Windows' own packaged components (Start, Settings, Search, lock screen...).</summary>
+    public static readonly IReadOnlyList<string> SystemPackagePrefixes =
+    [
+        "microsoft.windows.", "microsoftwindows.", "windows.", "microsoft.lockapp", "microsoft.aad.brokerplugin",
+        "microsoft.accountscontrol", "microsoft.win32webviewhost", "microsoft.ecapp", "microsoft.creddialoghost",
+        "microsoft.xboxgamecallableui", "microsoft.ui.xaml", "microsoft.vclibs", "microsoft.net.native",
+    ];
+
     private readonly string? _systemRoot;
     private readonly HashSet<string> _parentAllowed;
 
@@ -33,6 +43,19 @@ public sealed class AllowPolicy
     }
 
     public static string Normalize(string exe) => Path.GetFileName(exe.Replace('/', '\\').Split('\\')[^1]).Trim().ToLowerInvariant();
+
+    public bool IsAllowed(ProcessRef p)
+    {
+        if (!string.IsNullOrEmpty(p.Package))
+        {
+            var key = p.AppKey;
+            return _parentAllowed.Contains(key) || IsSystemPackage(key);
+        }
+        return IsAllowed(p.Exe, p.Path);
+    }
+
+    public static bool IsSystemPackage(string packageFamilyName) =>
+        SystemPackagePrefixes.Any(prefix => packageFamilyName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
 
     public bool IsAllowed(string exe, string? path)
     {

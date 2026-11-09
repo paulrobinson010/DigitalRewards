@@ -35,6 +35,6 @@ public static class EnforcementDecider
         {
             return [];
         }
-        return sessionProcesses.Where(p => !policy.IsAllowed(p.Exe, p.Path)).ToList();
+        return sessionProcesses.Where(p => !policy.IsAllowed(p)).ToList();
     }
 }
