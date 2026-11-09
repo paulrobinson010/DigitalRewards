@@ -26,6 +26,8 @@ The test vectors in `shared/test-vectors/` are executable versions of sections 2
 | `maxBank` | int? | null |
 | `dailyPlayCap` | int? | null |
 | `playWindows` | PlayWindow[]? | null |
+| `earnSource` | `"watch"` \| `"exercise"` | `"exercise"` for a new child; a missing value means `"watch"` (children created before this field existed) |
+| `earnSourceSince` | timestamp? | when `earnSource` last changed; exercise before it never counts |
 
 `PlayWindow = { "days": [1..7] (ISO weekday, Mon = 1), "start": "HH:mm", "end": "HH:mm" }`,
 with `start < end`, and `end` may be `"24:00"`. Windows don't cross midnight in v1.
@@ -33,7 +35,8 @@ An empty or null list means "always allowed".
 
 ## 2. Activity qualification
 
-- `activityType ∈ { "walk", "cycle", "other" }`. `walk` covers walking and running.
+- `activityType ∈ { "walk", "cycle", "other", "exercise" }`. `walk` covers walking and running.
+  `exercise` sessions come from Apple Exercise minutes (section 2a), not from the watch app.
 - `hrThresholdBpm(pct, birthYear, atYear) = roundHalfAwayFromZero(pct × (220 − (atYear − birthYear)))`.
   Note: C# must use `MidpointRounding.AwayFromZero`.
 - A **sample** `{hr: int?, cadence: double?}` (cadence in steps/min) passes if:
@@ -46,6 +49,23 @@ An empty or null list means "always allowed".
 - `qualifyingMinutes = count(qualifying minutes)`; `earnedMinutes = qualifyingMinutes × ratio`.
 - Rules are taken from the cached `Rules` at session **start** and stored in
   `Session.rulesSnapshot`.
+
+## 2a. Apple Exercise minutes (`earnSource = "exercise"`)
+
+The child's iPhone reads HealthKit `appleExerciseTime` and turns it into one `Session` per clock hour,
+in place of watch-app workouts. Apple decides which minutes count (brisk-walk intensity or harder);
+the walk/HR/cadence rules don't apply.
+
+- Count only samples measured by an Apple Watch (`sample.device?.model == "Watch"`) and not entered by
+  hand (`HKMetadataKeyWasUserEntered` not true), starting at or after `earnSourceSince`.
+- Bucket by the sample's start time into UTC clock hours. `minutes = round(Σ sample minutes)` per hour.
+- One record per hour, `recordName = "session-exm-<yyyyMMddHH UTC>"`, upserted as the hour fills up:
+  `activityType = "exercise"`, `startedAt` = the hour start, `endedAt` = min(hour end, the last
+  sample's end), `qualifyingMinutes = minutes`, `earnedMinutes = minutes × ratio`, `minutes` = `"[]"`,
+  `rulesSnapshot` = the rules used. The ratio is taken when the hour's record is written.
+- In this mode the watch app doesn't record Go AFK workouts: they would also show up as exercise
+  minutes and earn twice.
+- Overrides and bonuses (section 3) work on these sessions like any other.
 
 ## 3. Earn resolution (overrides and bonuses)
 
@@ -124,7 +144,7 @@ All timestamps are CloudKit `TIMESTAMP` (epoch ms in the REST API). JSON fields 
 | Type | recordName | Fields |
 |------|-----------|--------|
 | `Child` | `child` | `childId` STRING, `name` STRING, `birthYear` INT64, `timeZone` STRING |
-| `Rules` | `rules` | the rule fields above (`maxBank`, `dailyPlayCap` absent = null; `playWindows` JSON STRING, absent = null), `updatedAt` TIMESTAMP, `updatedBy` STRING (display name) |
+| `Rules` | `rules` | the rule fields above (`maxBank`, `dailyPlayCap` absent = null; `playWindows` JSON STRING, absent = null), `earnSource` STRING (absent = `"watch"`), `earnSourceSince` TIMESTAMP?, `updatedAt` TIMESTAMP, `updatedBy` STRING (display name) |
 | `Adjustment` | `adjust-<uuid>` | `minutes` INT64 (signed), `note` STRING (**required**), `at` TIMESTAMP, `byParent` STRING |
 | `SessionOverride` | `override-<session recordName>` | `sessionId` STRING, `earnedMinutes` INT64 (≥ 0; 0 = void), `note` STRING (**required**), `at` TIMESTAMP, `byParent` STRING. Saving again replaces the previous override. Deleting it restores the original. |
 | `Bonus` | `bonus-<uuid>` | `multiplier` DOUBLE (> 1.0, e.g. 1.5, 2.0), `startsAt` TIMESTAMP, `endsAt` TIMESTAMP, `note` STRING (**required**), `at` TIMESTAMP, `byParent` STRING |

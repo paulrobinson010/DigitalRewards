@@ -44,6 +44,8 @@ DEFINE SCHEMA
         "maxBank"         INT64,
         "dailyPlayCap"    INT64,
         "playWindows"     STRING,
+        "earnSource"      STRING,
+        "earnSourceSince" TIMESTAMP,
         "updatedAt"       TIMESTAMP,
         "updatedBy"       STRING,
         GRANT WRITE TO "_creator",
