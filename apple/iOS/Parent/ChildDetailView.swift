@@ -228,7 +228,11 @@ struct SessionOverrideView: View {
             Section("Workout") {
                 LabeledContent("Activity", value: s.activityType.title)
                 LabeledContent("When", value: s.startedAt.formatted(date: .abbreviated, time: .shortened))
-                LabeledContent("Above the bar", value: "\(s.qualifyingMinutes) of \(s.minutes.count) min")
+                if s.activityType == .exercise {
+                    LabeledContent("Apple Exercise minutes", value: "\(s.qualifyingMinutes) min")
+                } else {
+                    LabeledContent("Above the bar", value: "\(s.qualifyingMinutes) of \(s.minutes.count) min")
+                }
                 LabeledContent("Earned (original)", value: Fmt.minutes(resolved.originalMinutes))
                 if let bonus = resolved.bonus { LabeledContent("Bonus", value: bonus.label) }
                 if let reason = AlertMonitor.suspicionReason(s, among: model.entry(childId)?.state.activity?.sessions ?? []) {

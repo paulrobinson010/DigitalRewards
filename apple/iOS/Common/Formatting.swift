@@ -36,6 +36,7 @@ extension ActivityType {
         case .walk: return "Walk / Run"
         case .cycle: return "Cycle"
         case .other: return "Workout"
+        case .exercise: return "Exercise"
         }
     }
 
@@ -44,6 +45,7 @@ extension ActivityType {
         case .walk: return "figure.walk"
         case .cycle: return "figure.outdoor.cycle"
         case .other: return "figure.mixed.cardio"
+        case .exercise: return "figure.run"
         }
     }
 }

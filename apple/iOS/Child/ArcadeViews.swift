@@ -18,9 +18,16 @@ extension ChildState {
         Streak.days(activeDates: countedWorkouts.map(\.session.endedAt), timeZone: family.child.tz, now: computedAt)
     }
 
-    /// Most credits earned in a single workout.
+    /// Most credits earned in a single workout, or in a single day of Apple Exercise minutes.
     var highScore: Int {
-        resolved.filter { !$0.isVoided }.map(\.earnMinutes).max() ?? 0
+        let counted = resolved.filter { !$0.isVoided }
+        let workouts = counted.filter { $0.session.activityType != .exercise }.map(\.earnMinutes)
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = family.child.tz
+        let exerciseDays = Dictionary(grouping: counted.filter { $0.session.activityType == .exercise }) {
+            calendar.startOfDay(for: $0.session.startedAt)
+        }.values.map { $0.reduce(0) { $0 + $1.earnMinutes } }
+        return (workouts + exerciseDays).max() ?? 0
     }
 
     var mascotMood: MascotMood {

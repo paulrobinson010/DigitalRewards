@@ -1,3 +1,4 @@
+import RewardsCore
 import SwiftUI
 
 struct ChildRootView: View {
@@ -102,6 +103,9 @@ struct ChildHomeView: View {
             VStack(spacing: 18) {
                 if let state = model.state {
                     PlayerHeader(name: state.name)
+                    if state.family.rules.earnSource == .exercise {
+                        HealthConnectCard()
+                    }
                     HStack(spacing: 16) {
                         Mascot(mood: state.mascotMood)
                             .frame(width: 130, height: 100)
@@ -133,7 +137,7 @@ struct ChildHomeView: View {
         .navigationBarTitleDisplayMode(.inline)
         .refreshable { await model.refresh() }
         .task { checkForNewWorkouts() }
-        .onChange(of: newestWorkoutEnd) { _, _ in checkForNewWorkouts() }
+        .onChange(of: totalEarned) { _, _ in checkForNewWorkouts() }
         .toolbar {
             Menu {
                 Button("Join with a new code", systemImage: "number") { showRejoin = true }
@@ -159,7 +163,9 @@ struct ChildHomeView: View {
                 .tracking(4)
                 .foregroundStyle(Theme.cyan)
             if history.isEmpty {
-                Text("No games yet. Start a workout on your Apple Watch to earn credits!")
+                Text(state.family.rules.earnSource == .exercise
+                     ? "No credits yet. Wear your Apple Watch and get moving: exercise minutes turn into credits!"
+                     : "No games yet. Start a workout on your Apple Watch to earn credits!")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .neonCard(border: Theme.cyan.opacity(0.4))
@@ -179,28 +185,27 @@ struct ChildHomeView: View {
         }
     }
 
-    private var newestWorkoutEnd: Date? {
-        model.state?.resolved.filter { !$0.isVoided }.map(\.session.endedAt).max()
+    /// Everything earned from activity so far. Hourly exercise sessions grow during the hour,
+    /// so celebrating the change in this total counts each new minute once.
+    private var totalEarned: Int? {
+        model.state.map { $0.resolved.reduce(0) { $0 + $1.earnMinutes } }
     }
 
-    /// Celebrates workouts that ended since this device last showed the child's screen.
+    /// Celebrates credits earned since this device last showed the child's screen.
     private func checkForNewWorkouts() {
         #if DEBUG
         if ScreenshotMode.isOn { return }
         #endif
-        guard frozenCelebration == nil, let state = model.state, let newest = newestWorkoutEnd else { return }
-        let key = "dr.arcade.lastSeenWorkout.\(state.childId)"
+        guard frozenCelebration == nil, let state = model.state, let total = totalEarned else { return }
+        let key = "dr.arcade.lastSeenEarned.\(state.childId)"
         let defaults = UserDefaults.standard
         guard defaults.object(forKey: key) != nil else {
             // First time on this device: start from now, don't celebrate old workouts.
-            defaults.set(newest.timeIntervalSince1970, forKey: key)
+            defaults.set(total, forKey: key)
             return
         }
-        let lastSeen = Date(timeIntervalSince1970: defaults.double(forKey: key))
-        let fresh = state.resolved.filter { !$0.isVoided && $0.session.endedAt > lastSeen }
-        guard !fresh.isEmpty else { return }
-        defaults.set(newest.timeIntervalSince1970, forKey: key)
-        let credits = fresh.reduce(0) { $0 + $1.earnMinutes }
+        let credits = total - defaults.integer(forKey: key)
+        defaults.set(total, forKey: key)
         guard credits > 0 else { return }
         withAnimation { celebration = Celebration(credits: credits) }
         celebrationCount += 1

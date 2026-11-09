@@ -21,7 +21,7 @@ final class ChildModel {
     private var lastDeviceWrite: Date = .distantPast
     private var subscribed = false
 
-    var history: [HistoryItem] { state.map(HistoryBuilder.items(for:)) ?? [] }
+    var history: [HistoryItem] { state.map { HistoryBuilder.items(for: $0, groupExercise: true) } ?? [] }
 
     func refresh() async {
         #if DEBUG
@@ -116,6 +116,11 @@ final class ChildModel {
             if (try? await store.upsert([device.makeRecord(zoneID: zone.zoneID)], scope: zone.scope)) != nil {
                 lastDeviceWrite = Date()
             }
+        }
+
+        // Apple Exercise minutes → hourly sessions; show them straight away.
+        if await ExerciseSync.shared.sync(state), let local = await localState() {
+            self.state = local
         }
 
         if !subscribed {

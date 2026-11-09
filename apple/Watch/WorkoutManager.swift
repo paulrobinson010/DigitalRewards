@@ -101,7 +101,7 @@ final class WorkoutManager: NSObject {
         case .cycle:
             config.activityType = .cycling
             config.locationType = .outdoor
-        case .other:
+        case .other, .exercise:
             config.activityType = .other
             config.locationType = .unknown
         }

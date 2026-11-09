@@ -2,6 +2,11 @@ import Foundation
 
 public enum ActivityType: String, Codable, CaseIterable, Sendable {
     case walk, cycle, other
+    /// An hour of Apple Exercise minutes read from HealthKit (docs/CONTRACT.md §2a), not a watch workout.
+    case exercise
+
+    /// What the watch app offers to record.
+    public static let workoutTypes: [ActivityType] = [.walk, .cycle, .other]
 }
 
 /// One completed minute of active workout time (docs/CONTRACT.md §2).
@@ -49,7 +54,7 @@ public enum Qualification {
         case .walk:
             guard let cadence else { return false }
             return cadence >= Double(rules.walkCadenceSpm)
-        case .cycle, .other:
+        case .cycle, .other, .exercise:
             return true
         }
     }

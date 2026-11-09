@@ -114,6 +114,29 @@ It makes no iCloud calls and saves nothing, and its "now" is fixed at the most r
 - iPad 13″: an iPad Pro 13-inch (M4) Simulator, because the app supports iPad.
 - Apple Watch: an Apple Watch Series 10 (46 mm) or Ultra 2 Simulator.
 
+## Earning: Apple Exercise minutes or watch workouts
+
+Each child's Rules has **Earn from** (`earnSource`, docs/CONTRACT.md §2a):
+
+- **Apple Exercise minutes** (default for new children): the child just wears an Apple Watch. The
+  child's iPhone reads HealthKit `appleExerciseTime` (Apple Watch samples only, not hand-entered) and
+  writes one `session-exm-<yyyyMMddHH>` Session per UTC hour. Apple decides what counts, so the
+  heart-rate/step rules are hidden. Only exercise after the switch (`earnSourceSince`) counts.
+  The child's home screen asks for Apple Health access ("Connect Apple Health"). The watch app hides
+  Play in this mode so nothing earns twice.
+- **Go AFK watch workouts**: the original Play/End flow with our own thresholds.
+
+How the iPhone picks minutes up: `ExerciseSync` runs after every Child-mode refresh (launch,
+foreground, pull to refresh, CloudKit silent push, background app refresh), and an `HKObserverQuery`
+registered at launch with `enableBackgroundDelivery(.hourly)` lets HealthKit wake the app when new
+minutes arrive (iOS decides exactly when).
+
+**Before switching anyone to exercise in TestFlight:** the two new Rules fields (`earnSource`,
+`earnSourceSince`) must exist in Production. Run a Debug build, Parent › ⋯ › **Create CloudKit
+schema**, then **Deploy Schema Changes** in the CloudKit Console. New children are created with these
+fields, so adding a child also needs the deploy first. Existing children stay on watch workouts until
+a parent changes Earn from.
+
 ## CloudKit schema
 
 In the **Development** environment, record types are created automatically the first time each is

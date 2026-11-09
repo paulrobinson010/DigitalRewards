@@ -70,7 +70,7 @@ enum FamilyService {
         let child = ChildInfo(childId: childId, name: name, birthYear: birthYear, timeZone: timeZone)
         let others = otherParents.filter { $0.recordName != me.parentInfo.recordName }
         var records = [child.makeRecord(zoneID: zone.zoneID),
-                       RulesRecord.makeRecord(.defaults, zoneID: zone.zoneID, updatedBy: me.displayName),
+                       RulesRecord.makeRecord(Rules(earnSource: .exercise, earnSourceSince: Date()), zoneID: zone.zoneID, updatedBy: me.displayName),
                        me.parentInfo.makeRecord(zoneID: zone.zoneID)]
         records += others.map { $0.makeRecord(zoneID: zone.zoneID) }
         try await store.upsert(records, scope: .privateDB)

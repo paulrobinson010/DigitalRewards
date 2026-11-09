@@ -21,10 +21,18 @@ public enum RulesDiff {
         add("max balance", old.maxBank, new.maxBank, optMin)
         add("daily play cap", old.dailyPlayCap, new.dailyPlayCap, optMin)
         add("play windows", old.playWindows ?? [], new.playWindows ?? [], describe)
+        add("earn from", old.earnSource, new.earnSource, describe)
 
         if parts.isEmpty { return "No changes" }
         let text = parts.joined(separator: "; ")
         return text.prefix(1).uppercased() + text.dropFirst()
+    }
+
+    public static func describe(_ source: EarnSource) -> String {
+        switch source {
+        case .watch: return "Go AFK watch workouts"
+        case .exercise: return "Apple Exercise minutes"
+        }
     }
 
     public static func describe(_ windows: [PlayWindow]) -> String {

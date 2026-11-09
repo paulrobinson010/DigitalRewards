@@ -140,20 +140,18 @@ enum DemoData {
     // MARK: Lotus
 
     private static func lotusState(balance target: Int) -> ChildState {
-        let rules = Rules(ratio: 10, debitLimit: 30)
+        // Lotus earns from Apple Exercise minutes: hourly sessions, no Play button.
+        let rules = Rules(ratio: 10, debitLimit: 30, earnSource: .exercise,
+                          earnSourceSince: at(daysAgo: 20, hour: 9, minute: 0))
         let child = ChildInfo(childId: lotusId, name: "Lotus", birthYear: year - 6,
                               timeZone: TimeZone.current.identifier)
-        var rng = SeededRandom(seed: 11)
-        let plan: [(Int, ActivityType, Int, Int, Int, Int)] = [
-            (1, .walk, 16, 0, 15, 8),
-            (3, .other, 10, 0, 20, 12),
-            (5, .walk, 15, 30, 12, 6),
-            (9, .other, 11, 0, 25, 15),
+        let plan: [(daysAgo: Int, hour: Int, minutes: Int)] = [
+            (1, 15, 9), (1, 16, 6),
+            (3, 10, 12), (3, 11, 4),
+            (5, 15, 7),
+            (9, 11, 15), (9, 12, 5),
         ]
-        let sessions = plan.enumerated().map { i, p in
-            session(id: "session-demo-lotus-\(i)", daysAgo: p.0, type: p.1, hour: p.2, minute: p.3,
-                    total: p.4, qualifying: p.5, rules: rules, rng: &rng)
-        }
+        let sessions = plan.map { exerciseHour(daysAgo: $0.daysAgo, hour: $0.hour, minutes: $0.minutes, rules: rules) }
         let family = FamilySnapshot(zone: .privateZone(AppConfig.familyZoneName(childId: lotusId)),
                                     child: child, rules: rules, parents: [dad, mum])
         var spends = [(0, 16, 0, 40), (1, 17, 0, 60), (3, 15, 0, 90), (5, 16, 30, 50), (9, 14, 0, 120)]
@@ -221,6 +219,15 @@ enum DemoData {
                            endedAt: start.addingTimeInterval(Double(total) * 60),
                            minutes: minutes, qualifyingMinutes: qualifying,
                            earnedMinutes: qualifying * rules.ratio, rulesSnapshot: rules, deviceId: "demo-watch")
+    }
+
+    /// One hour of Apple Exercise minutes, as the child's iPhone writes them (CONTRACT §2a).
+    private static func exerciseHour(daysAgo: Int, hour: Int, minutes: Int, rules: Rules) -> SessionInfo {
+        let start = ExerciseHours.hourStart(at(daysAgo: daysAgo, hour: hour, minute: 0))
+        return SessionInfo(id: "session-exm-" + ExerciseHours.hourKey(start), activityType: .exercise,
+                           startedAt: start, endedAt: start.addingTimeInterval(Double(minutes + 20) * 60),
+                           minutes: [], qualifyingMinutes: minutes, earnedMinutes: minutes * rules.ratio,
+                           rulesSnapshot: rules, deviceId: "demo-lotus-iphone")
     }
 
     /// One `Spend` per minute of play on the PC, as the Windows app writes them.

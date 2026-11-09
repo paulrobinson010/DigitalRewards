@@ -31,6 +31,14 @@ public struct PlayWindow: Codable, Hashable, Sendable {
     }
 }
 
+/// Where a child's activity credit comes from (docs/CONTRACT.md §1, §2a).
+public enum EarnSource: String, Codable, Hashable, Sendable, CaseIterable {
+    /// Workouts recorded with the Go AFK watch app.
+    case watch
+    /// Apple Exercise minutes read from HealthKit on the child's iPhone.
+    case exercise
+}
+
 /// Per-child rules (docs/CONTRACT.md §1). Keys are camelCase and match CloudKit field names.
 public struct Rules: Codable, Hashable, Sendable {
     public var ratio: Int
@@ -42,6 +50,10 @@ public struct Rules: Codable, Hashable, Sendable {
     public var maxBank: Int?
     public var dailyPlayCap: Int?
     public var playWindows: [PlayWindow]?
+    /// Missing in older records means `.watch`.
+    public var earnSource: EarnSource
+    /// When `earnSource` last changed; exercise before it never counts.
+    public var earnSourceSince: Date?
 
     public init(
         ratio: Int = 10,
@@ -52,7 +64,9 @@ public struct Rules: Codable, Hashable, Sendable {
         debitLimit: Int = 60,
         maxBank: Int? = nil,
         dailyPlayCap: Int? = nil,
-        playWindows: [PlayWindow]? = nil
+        playWindows: [PlayWindow]? = nil,
+        earnSource: EarnSource = .watch,
+        earnSourceSince: Date? = nil
     ) {
         self.ratio = ratio
         self.walkCadenceSpm = walkCadenceSpm
@@ -63,6 +77,8 @@ public struct Rules: Codable, Hashable, Sendable {
         self.maxBank = maxBank
         self.dailyPlayCap = dailyPlayCap
         self.playWindows = playWindows
+        self.earnSource = earnSource
+        self.earnSourceSince = earnSourceSince
     }
 
     public static let defaults = Rules()
@@ -70,6 +86,7 @@ public struct Rules: Codable, Hashable, Sendable {
     private enum CodingKeys: String, CodingKey {
         case ratio, walkCadenceSpm, walkHrPct, otherHrPct, qualifyFraction
         case debitLimit, maxBank, dailyPlayCap, playWindows
+        case earnSource, earnSourceSince
     }
 
     /// Missing keys fall back to the defaults so older snapshots still decode.
@@ -85,6 +102,8 @@ public struct Rules: Codable, Hashable, Sendable {
         maxBank = try c.decodeIfPresent(Int.self, forKey: .maxBank)
         dailyPlayCap = try c.decodeIfPresent(Int.self, forKey: .dailyPlayCap)
         playWindows = try c.decodeIfPresent([PlayWindow].self, forKey: .playWindows)
+        earnSource = try c.decodeIfPresent(EarnSource.self, forKey: .earnSource) ?? .watch
+        earnSourceSince = try c.decodeIfPresent(Date.self, forKey: .earnSourceSince)
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -98,5 +117,7 @@ public struct Rules: Codable, Hashable, Sendable {
         try c.encodeIfPresent(maxBank, forKey: .maxBank)
         try c.encodeIfPresent(dailyPlayCap, forKey: .dailyPlayCap)
         try c.encodeIfPresent(playWindows, forKey: .playWindows)
+        try c.encode(earnSource, forKey: .earnSource)
+        try c.encodeIfPresent(earnSourceSince, forKey: .earnSourceSince)
     }
 }

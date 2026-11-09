@@ -61,6 +61,7 @@ targets:
         UILaunchScreen: {}
         CKSharingSupported: true
         ITSAppUsesNonExemptEncryption: false
+        NSHealthShareUsageDescription: Go AFK reads the exercise minutes your Apple Watch records so they can turn into game time.
         UIBackgroundModes: [remote-notification, fetch]
         BGTaskSchedulerPermittedIdentifiers: [com.digitalrewards.app.refresh]
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
@@ -76,6 +77,9 @@ targets:
         com.apple.developer.icloud-services: [CloudKit]
         com.apple.developer.icloud-container-environment: $(CLOUDKIT_ENVIRONMENT)
         aps-environment: development
+        # Child mode reads Apple Exercise minutes, and HealthKit wakes the app when new ones arrive.
+        com.apple.developer.healthkit: true
+        com.apple.developer.healthkit.background-delivery: true
 
   DigitalRewardsWatch:
     type: application

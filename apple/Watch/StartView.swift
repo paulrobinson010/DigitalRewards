@@ -22,14 +22,27 @@ struct StartView: View {
                 Label(bonus.label, systemImage: "sparkles")
                     .foregroundStyle(Theme.yellow)
             }
-            ForEach(ActivityType.allCases, id: \.self) { activity in
-                Button {
-                    Task { await workout.start(activity, context: store.context) }
-                } label: {
-                    Label(activity.title, systemImage: activity.symbol)
+            if store.context?.rules.earnSource == .exercise {
+                // Go AFK workouts would also count as exercise minutes and earn twice.
+                VStack(alignment: .leading, spacing: 6) {
+                    Label("Just move!", systemImage: ActivityType.exercise.symbol)
                         .font(.headline)
                         .foregroundStyle(Theme.green)
-                        .padding(.vertical, 8)
+                    Text("Your Apple Watch exercise minutes count automatically.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.vertical, 4)
+            } else {
+                ForEach(ActivityType.workoutTypes, id: \.self) { activity in
+                    Button {
+                        Task { await workout.start(activity, context: store.context) }
+                    } label: {
+                        Label(activity.title, systemImage: activity.symbol)
+                            .font(.headline)
+                            .foregroundStyle(Theme.green)
+                            .padding(.vertical, 8)
+                    }
                 }
             }
             #if DEBUG
@@ -71,6 +84,7 @@ extension ActivityType {
         case .walk: return "Walk / Run"
         case .cycle: return "Cycle"
         case .other: return "Other workout"
+        case .exercise: return "Exercise"
         }
     }
 
@@ -79,6 +93,7 @@ extension ActivityType {
         case .walk: return "figure.walk"
         case .cycle: return "figure.outdoor.cycle"
         case .other: return "figure.mixed.cardio"
+        case .exercise: return "figure.run"
         }
     }
 }

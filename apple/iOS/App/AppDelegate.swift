@@ -9,6 +9,10 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         // CloudKit silent pushes (database subscriptions) need a device token.
         application.registerForRemoteNotifications()
         WatchSync.shared.activate()
+        // HealthKit background delivery only wakes the app for observers set up on each launch.
+        if AppServices.shared.mode == .child {
+            ExerciseSync.shared.startObserving()
+        }
         return true
     }
 

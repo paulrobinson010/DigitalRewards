@@ -5,6 +5,8 @@ import SwiftUI
 struct HistoryItem: Identifiable {
     enum Kind {
         case workout(ResolvedSession)
+        /// A day of hourly Apple Exercise sessions, grouped for the child (parents see each hour).
+        case exerciseDay(minutes: Int, earned: Int, sessions: [ResolvedSession])
         case play(minutes: Int, apps: [String])
         case adjustment(AdjustmentEntry)
         case bonus(BonusInfo)
@@ -17,16 +19,35 @@ struct HistoryItem: Identifiable {
 }
 
 enum HistoryBuilder {
-    static func items(for state: ChildState) -> [HistoryItem] {
+    /// `groupExercise`: show hourly Apple Exercise sessions as one row per day (child view).
+    /// The parent ledger keeps them per hour so each can be edited or voided.
+    static func items(for state: ChildState, groupExercise: Bool = false) -> [HistoryItem] {
         var items: [HistoryItem] = []
-        items += state.resolved.map { HistoryItem(id: $0.id, date: $0.session.endedAt, kind: .workout($0)) }
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = state.family.child.tz
+
+        let exercise = state.resolved.filter { $0.session.activityType == .exercise }
+        if groupExercise {
+            items += state.resolved.filter { $0.session.activityType != .exercise }
+                .map { HistoryItem(id: $0.id, date: $0.session.endedAt, kind: .workout($0)) }
+            let byDay = Dictionary(grouping: exercise) { calendar.startOfDay(for: $0.session.startedAt) }
+            for (day, sessions) in byDay {
+                let sorted = sessions.sorted { $0.session.startedAt < $1.session.startedAt }
+                items.append(HistoryItem(
+                    id: "exercise-\(Int(day.timeIntervalSince1970))",
+                    date: sorted.map(\.session.endedAt).max() ?? day,
+                    kind: .exerciseDay(minutes: sorted.reduce(0) { $0 + $1.session.qualifyingMinutes },
+                                       earned: sorted.reduce(0) { $0 + $1.earnMinutes },
+                                       sessions: sorted)))
+            }
+        } else {
+            items += state.resolved.map { HistoryItem(id: $0.id, date: $0.session.endedAt, kind: .workout($0)) }
+        }
         items += state.family.adjustments.map { HistoryItem(id: $0.id, date: $0.at, kind: .adjustment($0)) }
         items += state.family.bonuses.map { HistoryItem(id: $0.id, date: $0.at, kind: .bonus($0)) }
         items += state.family.rulesChanges.map { HistoryItem(id: $0.id, date: $0.at, kind: .rulesChange($0)) }
 
         // Play is one Spend per minute; group it by day in the child's time zone.
-        var calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = state.family.child.tz
         let byDay = Dictionary(grouping: state.activity?.spends ?? []) { calendar.startOfDay(for: $0.at) }
         for (day, spends) in byDay {
             let apps = Array(Set(spends.map(\.app).filter { !$0.isEmpty })).sorted()
@@ -46,11 +67,29 @@ struct HistoryRow: View {
     var body: some View {
         switch item.kind {
         case .workout(let r): WorkoutRow(resolved: r, arcade: arcade)
+        case .exerciseDay(let minutes, let earned, let sessions): exerciseRow(minutes, earned, sessions)
         case .play(let minutes, let apps): playRow(minutes, apps)
         case .adjustment(let a): adjustmentRow(a)
         case .bonus(let b): bonusRow(b)
         case .rulesChange(let c): rulesRow(c)
         }
+    }
+
+    private func exerciseRow(_ minutes: Int, _ earned: Int, _ sessions: [ResolvedSession]) -> some View {
+        let day = item.date.formatted(date: .abbreviated, time: .omitted)
+        // Parent edits and bonuses on any hour stay visible.
+        let notes = sessions.compactMap { r -> String? in
+            if let o = r.sessionOverride {
+                let hour = r.session.startedAt.formatted(date: .omitted, time: .shortened)
+                return o.earnedMinutes == 0 ? "\(hour) voided by \(o.byParent): \(o.note)"
+                                            : "\(hour) edited by \(o.byParent): \(o.note)"
+            }
+            return r.bonus.map { "\($0.label) bonus" }
+        }
+        let detail = Array(NSOrderedSet(array: notes)).compactMap { $0 as? String }.joined(separator: "\n")
+        return row(icon: ActivityType.exercise.symbol, tint: Theme.green,
+                   title: arcade ? "EXERCISE · \(minutes) min powered up" : "Exercise \(day) · \(minutes) min",
+                   detail: detail, amount: Fmt.signed(earned), amountColor: Theme.credit)
     }
 
     private func playRow(_ minutes: Int, _ apps: [String]) -> some View {
@@ -113,7 +152,9 @@ struct WorkoutRow: View {
             Image(systemName: s.activityType.symbol).foregroundStyle(Theme.green).frame(width: 24)
             VStack(alignment: .leading, spacing: 2) {
                 Text(arcade ? "\(s.activityType.title.uppercased()) · \(s.qualifyingMinutes) min powered up"
-                            : "\(s.activityType.title) · \(s.qualifyingMinutes) of \(s.minutes.count) min above the bar")
+                            : s.activityType == .exercise
+                                ? "Exercise · \(s.qualifyingMinutes) min (hour from \(s.startedAt.formatted(date: .omitted, time: .shortened)))"
+                                : "\(s.activityType.title) · \(s.qualifyingMinutes) of \(s.minutes.count) min above the bar")
                     .font(.subheadline.weight(.semibold))
                 if let bonus = resolved.bonus {
                     Text(bonus.label)

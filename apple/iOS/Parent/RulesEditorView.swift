@@ -76,6 +76,15 @@ struct RulesEditorView: View {
          Binding(get: { draft![keyPath: keyPath] ?? value }, set: { draft![keyPath: keyPath] = $0 }))
     }
 
+    /// Changing where minutes come from restarts the clock: exercise before the switch never counts.
+    /// Switching back to the saved source restores its original start time.
+    private func earnSourceBinding(saved: Rules) -> Binding<EarnSource> {
+        Binding(get: { draft!.earnSource }, set: { source in
+            draft!.earnSource = source
+            draft!.earnSourceSince = source == saved.earnSource ? saved.earnSourceSince : Date()
+        })
+    }
+
     private func form(_ entry: ChildEntry) -> some View {
         let rules = draft!
         let child = entry.family.child
@@ -90,30 +99,45 @@ struct RulesEditorView: View {
 
         return Form {
             Section {
+                Picker("Earn from", selection: earnSourceBinding(saved: entry.family.rules)) {
+                    Text("Apple Exercise minutes").tag(EarnSource.exercise)
+                    Text("Go AFK watch workouts").tag(EarnSource.watch)
+                }
                 Stepper("1 active min = \(rules.ratio) gaming min", value: binding(\.ratio), in: 1...60)
             } header: {
                 Text("Earning")
-            }
-            Section {
-                Stepper("Step rate ≥ \(rules.walkCadenceSpm)/min", value: binding(\.walkCadenceSpm), in: 60...180, step: 5)
-                Stepper("Heart rate ≥ \(pct(rules.walkHrPct)) (\(walkBpm) bpm)", value: binding(\.walkHrPct),
-                        in: 0.3...0.9, step: 0.05)
-            } header: {
-                Text("Walk / run")
-            }
-            Section {
-                Stepper("Heart rate ≥ \(pct(rules.otherHrPct)) (\(otherBpm) bpm)", value: binding(\.otherHrPct),
-                        in: 0.3...0.95, step: 0.05)
-            } header: {
-                Text("Cycling and other workouts")
             } footer: {
-                Text("Estimated max heart rate for \(child.name): \(maxHr) bpm (220 − age).")
+                switch rules.earnSource {
+                case .exercise:
+                    Text("Automatic: \(child.name) just wears an Apple Watch. Every minute the watch counts as exercise "
+                         + "(brisk walk or harder, the green ring) earns time. Apple decides what counts, so the "
+                         + "heart rate and step settings don't apply. Their iPhone needs Apple Health access.")
+                case .watch:
+                    Text("\(child.name) presses Play in the Go AFK watch app. Minutes count when they're above the bar below.")
+                }
             }
-            Section {
-                Stepper("\(pct(rules.qualifyFraction)) of each minute", value: binding(\.qualifyFraction),
-                        in: 0.5...1.0, step: 0.05)
-            } header: {
-                Text("A minute counts when above the bar for")
+            if rules.earnSource == .watch {
+                Section {
+                    Stepper("Step rate ≥ \(rules.walkCadenceSpm)/min", value: binding(\.walkCadenceSpm), in: 60...180, step: 5)
+                    Stepper("Heart rate ≥ \(pct(rules.walkHrPct)) (\(walkBpm) bpm)", value: binding(\.walkHrPct),
+                            in: 0.3...0.9, step: 0.05)
+                } header: {
+                    Text("Walk / run")
+                }
+                Section {
+                    Stepper("Heart rate ≥ \(pct(rules.otherHrPct)) (\(otherBpm) bpm)", value: binding(\.otherHrPct),
+                            in: 0.3...0.95, step: 0.05)
+                } header: {
+                    Text("Cycling and other workouts")
+                } footer: {
+                    Text("Estimated max heart rate for \(child.name): \(maxHr) bpm (220 − age).")
+                }
+                Section {
+                    Stepper("\(pct(rules.qualifyFraction)) of each minute", value: binding(\.qualifyFraction),
+                            in: 0.5...1.0, step: 0.05)
+                } header: {
+                    Text("A minute counts when above the bar for")
+                }
             }
             Section("Balance") {
                 Stepper("Debit allowed: \(Fmt.minutes(rules.debitLimit))", value: binding(\.debitLimit),

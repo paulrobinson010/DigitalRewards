@@ -74,7 +74,9 @@ enum RulesRecord {
             debitLimit: r.int("debitLimit") ?? d.debitLimit,
             maxBank: r.int("maxBank"),
             dailyPlayCap: r.int("dailyPlayCap"),
-            playWindows: JSONText.decode([PlayWindow].self, from: r.string("playWindows"))
+            playWindows: JSONText.decode([PlayWindow].self, from: r.string("playWindows")),
+            earnSource: r.string("earnSource").flatMap(EarnSource.init(rawValue:)) ?? .watch,
+            earnSourceSince: r.date("earnSourceSince")
         )
     }
 
@@ -89,6 +91,12 @@ enum RulesRecord {
         r.put("dailyPlayCap", rules.dailyPlayCap)
         let windows: String? = (rules.playWindows?.isEmpty ?? true) ? nil : JSONText.encode(rules.playWindows)
         r.put("playWindows", windows)
+        // Written only once a child has been set to earn from exercise (or switched back), so
+        // rules saves keep working against a Production schema that predates these fields.
+        if rules.earnSource == .exercise || rules.earnSourceSince != nil {
+            r.put("earnSource", rules.earnSource.rawValue)
+            r.put("earnSourceSince", rules.earnSourceSince)
+        }
         r.put("updatedAt", Date())
         r.put("updatedBy", updatedBy)
     }
